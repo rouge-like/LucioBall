@@ -44,7 +44,7 @@ void ABouncyBall::Tick(float DeltaTime)
 void ABouncyBall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	FVector FinalVelocity;
-	/*if (OtherComp && OtherComp->IsSimulatingPhysics())
+	if (OtherComp && OtherComp->IsSimulatingPhysics())
 	{
 		FVector Normal = Hit.ImpactNormal;
 		Normal.Normalize();
@@ -57,7 +57,7 @@ void ABouncyBall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 		FinalVelocity = ReflectedRelativeVelocity + OtherVelocity;
 		
 	}
-	else*/
+	else
 	{
 		FVector ReflectedVelocity = PreviousVelocity - 2 * PreviousVelocity.Dot(Hit.ImpactNormal) * Hit.ImpactNormal;
 		FinalVelocity =  ReflectedVelocity * Elasticity;
@@ -65,8 +65,6 @@ void ABouncyBall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 	
 	
 	BallMesh->SetPhysicsLinearVelocity(FinalVelocity);
-
-	UE_LOG(LogTemp, Warning, TEXT("Ball Hit! New Velocity: %s"), *FinalVelocity.ToString());
 }
 void ABouncyBall::BouncyBallAddImpulse(FVector Impulse)
 {
