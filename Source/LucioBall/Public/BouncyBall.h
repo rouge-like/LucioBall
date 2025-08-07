@@ -28,7 +28,7 @@ protected:
 	UFUNCTION()
 	void OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category = "BouncyBall")
 	void BouncyBallAddImpulse(FVector Impulse);
 
 	FVector PreviousVelocity;

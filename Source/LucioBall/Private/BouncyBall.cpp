@@ -2,6 +2,8 @@
 
 
 #include "BouncyBall.h"
+#include "VelCharacter.h"
+#include "Engine/Engine.h"
 
 // Sets default values
 ABouncyBall::ABouncyBall()
@@ -43,27 +45,23 @@ void ABouncyBall::Tick(float DeltaTime)
 
 void ABouncyBall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (PreviousVelocity.SizeSquared() <= 0.01f)
+		return;
+	
+	float Dot = (-PreviousVelocity).Dot(Hit.ImpactNormal);
+
+	if (Dot < 0.1f)
+		return;
+	
 	FVector FinalVelocity;
-	if (OtherComp && OtherComp->IsSimulatingPhysics())
-	{
-		FVector Normal = Hit.ImpactNormal;
-		Normal.Normalize();
-
-		FVector OtherVelocity = OtherComp->GetPhysicsLinearVelocity();
-		FVector RelativeVelocity = PreviousVelocity - OtherVelocity;
-
-		FVector ReflectedRelativeVelocity = RelativeVelocity - Normal * (2 * ReflectedRelativeVelocity.Dot(Normal));
-
-		FinalVelocity = ReflectedRelativeVelocity + OtherVelocity;
-		
-	}
-	else
-	{
-		FVector ReflectedVelocity = PreviousVelocity - 2 * PreviousVelocity.Dot(Hit.ImpactNormal) * Hit.ImpactNormal;
-		FinalVelocity =  ReflectedVelocity * Elasticity;
-	}
+	FVector ReflectedVelocity = PreviousVelocity - 2 * PreviousVelocity.Dot(Hit.ImpactNormal) * Hit.ImpactNormal;
 	
-	
+	FinalVelocity =  ReflectedVelocity * Elasticity;
+
+	if (GEngine)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Yellow, FinalVelocity.ToString());	
+	}
 	BallMesh->SetPhysicsLinearVelocity(FinalVelocity);
 }
 void ABouncyBall::BouncyBallAddImpulse(FVector Impulse)
@@ -71,5 +69,4 @@ void ABouncyBall::BouncyBallAddImpulse(FVector Impulse)
 	const FVector FinalVelocity =  PreviousVelocity + Impulse;
 	
 	BallMesh->SetPhysicsLinearVelocity(FinalVelocity);
-	
 }
