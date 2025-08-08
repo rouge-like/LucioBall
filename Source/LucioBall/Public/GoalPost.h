@@ -23,6 +23,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> BoxCollision;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	bool IsPlayerTeam;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -30,7 +33,8 @@ protected:
 private:
 	UFUNCTION()
 	void OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	
+
+	bool IsActorPlayer(AActor* Actor);
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

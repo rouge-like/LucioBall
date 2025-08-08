@@ -4,8 +4,10 @@
 #include "GoalPost.h"
 
 #include "BouncyBall.h"
+#include "LucioBallMode.h"
 #include "Components/BoxComponent.h"
 #include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -30,30 +32,44 @@ AGoalPost::AGoalPost()
 void AGoalPost::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
+
+bool AGoalPost::IsActorPlayer(AActor* Actor)
+{
+	if (Actor)
+		return false;
+
+	APawn* Pawn = Cast<APawn>(Actor);
+	if (Pawn)
+	{
+		AController* Controller = Pawn->GetController();
+		if (Controller)
+		{
+			return Controller->IsPlayerController();
+		}
+	}
+	return false;
+}
+
 
 void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	ABouncyBall* Ball = Cast<ABouncyBall>(OtherActor);
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Yellow, OtherActor->GetName());	
-	}
+
 	if (Ball)
 	{
+		AActor* Attacker = Ball->GetLastAttacker();
+		AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(GetWorld());
+		ALucioBallMode* LucioBallMode = Cast<ALucioBallMode>(GameModeBase);
+		
+		if (Attacker)
+		{
+			bool IsPlayer = IsActorPlayer(Attacker);
+			bool IsOwnGoal = !(IsPlayer ^ IsPlayerTeam);
+
+			LucioBallMode->SetGoalScore(IsPlayerTeam, IsOwnGoal, Attacker->GetName());
+		}
 		Ball->Destroy();
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Yellow, "GOAL!");	
-		}
-	}
-	else
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Yellow, OtherComp->GetName());	
-		}
 	}
 }
 

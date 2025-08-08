@@ -64,9 +64,14 @@ void ABouncyBall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 	}
 	BallMesh->SetPhysicsLinearVelocity(FinalVelocity);
 }
-void ABouncyBall::BouncyBallAddImpulse(FVector Impulse)
+void ABouncyBall::BouncyBallAddImpulse(FVector Impulse, AActor* Attacker)
 {
 	const FVector FinalVelocity =  PreviousVelocity + Impulse;
-	
+	LastAttacker = Attacker;
 	BallMesh->SetPhysicsLinearVelocity(FinalVelocity);
+}
+
+AActor* ABouncyBall::GetLastAttacker() const
+{
+	return LastAttacker;
 }

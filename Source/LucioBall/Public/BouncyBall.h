@@ -19,22 +19,28 @@ public:
 	TObjectPtr<UStaticMeshComponent> BallMesh;
 
 protected:
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BouncyBall Physics")
 	float Elasticity = 0.9f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<AActor> LastAttacker;
+
 	UFUNCTION()
 	void OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-	UFUNCTION(BlueprintCallable, Category = "BouncyBall")
-	void BouncyBallAddImpulse(FVector Impulse);
 
 	FVector PreviousVelocity;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION(BlueprintCallable, Category = "BouncyBall")
+	void BouncyBallAddImpulse(FVector Impulse, AActor* Attacker);
 
+	UFUNCTION(BlueprintCallable, Category = "BouncyBall")
+	AActor* GetLastAttacker() const;
 };

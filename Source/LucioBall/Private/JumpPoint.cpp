@@ -15,6 +15,7 @@ AJumpPoint::AJumpPoint()
 
 	JumpPointMesh -> SetSimulatePhysics(false);
 	JumpPointMesh -> SetNotifyRigidBodyCollision(true);
+	JumpPointMesh -> SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 	
 	Tags.Add(FName(TEXT("JumpPoint")));
 }
