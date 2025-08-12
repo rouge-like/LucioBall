@@ -1,10 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GoalPost.h"
-
-#include "BouncyBall.h"
-#include "LucioBallMode.h"
+#include "OSC/GoalPost.h"
+#include "OSC/BouncyBall.h"
+#include "OSC/LucioBallMode.h"
 #include "Components/BoxComponent.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
@@ -65,11 +64,23 @@ void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		if (Attacker)
 		{
 			bool IsPlayer = IsActorPlayer(Attacker);
-			bool IsOwnGoal = !(IsPlayer ^ IsPlayerTeam);
+			bool IsOwnGoal = (IsPlayer ^ IsPlayerTeam);
 
 			LucioBallMode->SetGoalScore(IsPlayerTeam, IsOwnGoal, Attacker->GetName());
 		}
 		Ball->Destroy();
+
+		if (GoalVFX)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+GetWorld(),
+GoalVFX,
+GetActorLocation(),
+GetActorRotation(),
+FVector(3, 3, 3),
+true
+			);
+		}
 	}
 }
 

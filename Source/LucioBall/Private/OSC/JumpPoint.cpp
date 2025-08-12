@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "JumpPoint.h"
+#include "OSC/JumpPoint.h"
 
 
 // Sets default values

@@ -26,6 +26,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	bool IsPlayerTeam;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	TObjectPtr<UParticleSystem> GoalVFX;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
