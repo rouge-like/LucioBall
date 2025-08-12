@@ -8,6 +8,7 @@
 
 
 class ABouncyBall;
+class AGameHUD;
 UCLASS()
 class LUCIOBALL_API ALucioBallMode : public AGameModeBase
 {
@@ -16,23 +17,34 @@ class LUCIOBALL_API ALucioBallMode : public AGameModeBase
 private:
 	int32 PlayerScore;
 	int32 AIScore;
+	
+	float CurrentTime;
 
 	FTimerHandle TimerHandle;
-
+	
+	AGameHUD* HUD;
+	
 	UFUNCTION()
 	void SpawnBouncyBall();
 	
 public:
 	ALucioBallMode();
-
-	UPROPERTY(EditDefaultsOnly, Category = "Actors")
+	
+	UPROPERTY(EditDefaultsOnly)
+	float Time = 240;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "A_Mode")
 	TSubclassOf<ABouncyBall> BouncyBall;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Actors")
+	UPROPERTY(EditDefaultsOnly, Category = "A_Mode")
 	FVector BallSpawnPosition;
 	
-	UFUNCTION(BlueprintCallable, Category = "Components")
+	UFUNCTION(BlueprintCallable, Category = "A_Mode")
 	void SetGoalScore(bool IsPlayerTeam, bool IsOwnGoal, FString AttackerName);
+	
+	void SetGoalScore(bool IsPlayerTeam);
 
+	
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 };

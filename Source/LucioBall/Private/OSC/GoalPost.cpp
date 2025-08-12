@@ -68,6 +68,10 @@ void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 
 			LucioBallMode->SetGoalScore(IsPlayerTeam, IsOwnGoal, Attacker->GetName());
 		}
+		else
+		{
+			LucioBallMode->SetGoalScore(IsPlayerTeam);
+		}
 		Ball->Destroy();
 
 		if (GoalVFX)

@@ -4,21 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "GameUIWidget.generated.h"
+#include "TimerWidget.generated.h"
 
 /**
  * 
  */
-class UScoreWidget;
+class UTextBlock;
 UCLASS()
-class LUCIOBALL_API UGameUIWidget : public UUserWidget
+class LUCIOBALL_API UTimerWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
 public:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UScoreWidget> ScoreWidget;
+	TObjectPtr<UTextBlock> RemainTimeText;
 
-	void UpdatePlayerScore(int32 NewScore);
-	void UpdateOtherScore(int32 NewScore);
+	void UpdateRemainTime(float time);
 };

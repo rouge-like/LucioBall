@@ -46,22 +46,24 @@ void ABouncyBall::Tick(float DeltaTime)
 void ABouncyBall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (PreviousVelocity.SizeSquared() <= 0.01f)
-		return;
+	{
+		BallMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+		return;	
+	}
 	
-	float Dot = (-PreviousVelocity).Dot(Hit.ImpactNormal);
+	float Dot = PreviousVelocity.Dot(Hit.ImpactNormal);
 
-	if (Dot < 0.1f)
+	if (Dot > -0.1f)
+	{
+		// 마찰력 적용
 		return;
+	}
 	
 	FVector FinalVelocity;
-	FVector ReflectedVelocity = PreviousVelocity - 2 * PreviousVelocity.Dot(Hit.ImpactNormal) * Hit.ImpactNormal;
+	FVector ReflectedVelocity = PreviousVelocity - 2 * Dot * Hit.ImpactNormal;
 	
 	FinalVelocity =  ReflectedVelocity * Elasticity;
-
-	if (GEngine)
-	{
-		//GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Yellow, FinalVelocity.ToString());	
-	}
+	
 	BallMesh->SetPhysicsLinearVelocity(FinalVelocity);
 }
 void ABouncyBall::BouncyBallAddImpulse(FVector Impulse, AActor* Attacker)
