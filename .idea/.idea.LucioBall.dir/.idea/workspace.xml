@@ -9,8 +9,8 @@
   <component name="ChangeListManager">
     <list default="true" id="6426caa6-19ca-403d-b230-87f93b714bff" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.LucioBall.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LucioBall.dir/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/LucioBall/Private/AiCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/LucioBall/Private/CEJ/Ai/AiCharacter.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/LucioBall/Public/AiCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/LucioBall/Public/CEJ/Ai/AiCharacter.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultEditor.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEditor.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/OSC/Maps/GameMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/OSC/Maps/GameMap.umap" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -287,6 +287,7 @@
       <workItem from="1754950095913" duration="3652000" />
       <workItem from="1754989664442" duration="451000" />
       <workItem from="1754990177690" duration="631000" />
+      <workItem from="1755032113601" duration="993000" />
     </task>
     <servers />
   </component>
@@ -294,6 +295,17 @@
     <option name="version" value="3" />
   </component>
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
   </component>
