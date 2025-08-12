@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BouncyBall.h"
-#include "VelCharacter.h"
+#include "OSC/BouncyBall.h"
+#include "OSC/VelCharacter.h"
 #include "Engine/Engine.h"
 
 // Sets default values

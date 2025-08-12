@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "VelCharacter.h"
+#include "OSC/VelCharacter.h"
 
 // Sets default values
 AVelCharacter::AVelCharacter()
