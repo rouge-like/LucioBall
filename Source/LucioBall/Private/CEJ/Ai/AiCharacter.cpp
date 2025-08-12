@@ -1,6 +1,6 @@
 // AiCharacter.cpp
 
-#include "AiCharacter.h"
+#include "CEJ/Ai/AiCharacter.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
