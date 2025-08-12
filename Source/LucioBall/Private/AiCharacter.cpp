@@ -1,8 +1,8 @@
 // AiCharacter.cpp
 
 #include "AiCharacter.h"
-#include "Kismet/GameplayStatics.h"
 #include "AIController.h"
+#include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
