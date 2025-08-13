@@ -7,11 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6426caa6-19ca-403d-b230-87f93b714bff" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LucioBall.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LucioBall.dir/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEditor.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEditor.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/OSC/Maps/GameMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/OSC/Maps/GameMap.umap" afterDir="false" />
-    </list>
+    <list default="true" id="6426caa6-19ca-403d-b230-87f93b714bff" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -288,6 +284,7 @@
       <workItem from="1754989664442" duration="451000" />
       <workItem from="1754990177690" duration="631000" />
       <workItem from="1755032113601" duration="993000" />
+      <workItem from="1755043269374" duration="504000" />
     </task>
     <servers />
   </component>
