@@ -1,11 +1,12 @@
-// AiCharacter.cpp
-
 #include "CEJ/Ai/AiCharacter.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "DrawDebugHelpers.h"
+#include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Animation/AnimInstance.h"
 
 AAiCharacter::AAiCharacter()
 {
@@ -13,12 +14,52 @@ AAiCharacter::AAiCharacter()
 
     AutoPossessAI   = EAutoPossessAI::PlacedInWorldOrSpawned;
     AIControllerClass = AAIController::StaticClass();
+
+    GetMesh()->SetupAttachment(GetCapsuleComponent());
+    GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+    GetMesh()->SetRelativeLocation(FVector(0.f, -10.f, 60.f));
+    GetMesh()->SetRelativeScale3D(FVector(47.f));
+
+    static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(
+        TEXT("SkeletalMesh'/Game/CEJ/Animations/Skateboarding.Skateboarding'")
+    );
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMatRef(
+        TEXT("Material'/Game/CEJ/Asset/lucio_default_color_tga_Mat.lucio_default_color_tga_Mat'")
+    );
+    
+    if (MeshRef.Succeeded())
+    {
+        GetMesh()->SetSkeletalMesh(MeshRef.Object);
+       
+        if (OverlayMatRef.Succeeded())
+        {
+            GetMesh()->SetOverlayMaterial(OverlayMatRef.Object);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("mesh material 경로 확인 필요"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("mesh 없음~ mesh 경로 확인!"));
+    }
+
+    // (옵션) 애님 블루프린트 연결
+    // static ConstructorHelpers::FClassFinder<UAnimInstance> AnimBPRef(
+    //     TEXT("AnimBlueprint'/Game/CEJ/Animations/ABP_Skateboarding.ABP_Skateboarding_C'")
+    // );
+    // if (AnimBPRef.Succeeded())
+    // {
+    //     GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+    //     GetMesh()->SetAnimInstanceClass(AnimBPRef.Class);
+    // }
 }
 
 void AAiCharacter::BeginPlay()
 {
     Super::BeginPlay();
-
+    
     // 1) BP_BouncyBall(타깃) 먼저 확보 시도
     TArray<AActor*> FoundBalls;
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), TargetTag, FoundBalls);

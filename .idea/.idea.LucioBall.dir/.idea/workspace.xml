@@ -9,16 +9,11 @@
   <component name="ChangeListManager">
     <list default="true" id="6426caa6-19ca-403d-b230-87f93b714bff" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.LucioBall.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LucioBall.dir/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/CEJ/Animations/BD_Ai.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/CEJ/Animations/BD_Ai.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/CEJ/Animations/Punching.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/CEJ/Animations/Punching_Anim.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/CEJ/Animations/Punching_PhysicsAsset.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/CEJ/Animations/Punching_Skeleton.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/CEJ/Animations/RTA_PunchPunching_Anim.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/CEJ/Animations/RTA_PunchRTA_Punching.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/CEJ/Animations/RTA_Punching.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/CEJ/BP/BP_Ai.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/CEJ/BP/BP_Ai.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/OSC/Maps/GameMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/OSC/Maps/GameMap.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/CEJ/GameMapTest.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/CEJ/GameMapTest.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/LucioBall/Private/CEJ/Ai/AiCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/LucioBall/Private/CEJ/Ai/AiCharacter.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/LucioBall/Public/CEJ/Ai/AiCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/LucioBall/Public/CEJ/Ai/AiCharacter.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
