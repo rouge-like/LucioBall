@@ -5,6 +5,8 @@
 #include "OSC/UI/ScoreWidget.h"
 #include "OSC/UI/TimerWidget.h"
 #include "OSC/UI/GoalTextWidget.h"
+#include  "OSC/UI/SkillWidget.h"
+#include  "OSC/UI/UltGaugeWidget.h"
 
 void UGameUIWidget::UpdatePlayerScore(int32 NewScore)
 {
@@ -24,4 +26,22 @@ void UGameUIWidget::UpdateTimer(float NewTime)
 void UGameUIWidget::UpdateGoalText(FText Text)
 {
 	GoalTextWidget->UpdateGoalText(Text);
+}
+
+void UGameUIWidget::UpdateSkill(int Idx, float Sec)
+{
+	switch (Idx)
+	{
+		case 0:
+		Skill0->UpdateProgress(Sec);
+		break;
+		case 1:
+		Skill1->UpdateProgress(Sec);
+		break;
+	}
+}
+
+void UGameUIWidget::UpdateUlt(float DeltaTime)
+{
+	UltWidget->UpdateProgress(DeltaTime);
 }

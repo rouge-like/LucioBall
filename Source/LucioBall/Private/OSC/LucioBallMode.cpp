@@ -33,6 +33,9 @@ void ALucioBallMode::Tick(float DeltaTime)
 	{
 		UGameUIWidget* GameUI = HUD->GetGameUIWidget();
 		GameUI->UpdateTimer(CurrentTime);
+		GameUI->UpdateSkill(0, DeltaTime);
+		GameUI->UpdateSkill(1, DeltaTime);
+		GameUI->UpdateUlt(DeltaTime);
 	}
 	
 }
