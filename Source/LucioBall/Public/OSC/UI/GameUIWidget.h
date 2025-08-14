@@ -13,6 +13,9 @@
 class UScoreWidget;
 class UTimerWidget;
 class UTextWidget;
+class USkillWidget;
+class UUltGaugeWidget;
+
 UCLASS()
 class LUCIOBALL_API UGameUIWidget : public UUserWidget
 {
@@ -27,9 +30,20 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UGoalTextWidget> GoalTextWidget;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UUltGaugeWidget> UltWidget;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<USkillWidget> Skill0;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<USkillWidget> Skill1;
 
 	void UpdatePlayerScore(int32 NewScore);
 	void UpdateOtherScore(int32 NewScore);
 	void UpdateTimer(float NewTime);
 	void UpdateGoalText(FText Text);
+	void UpdateSkill(int Idx, float Sec);
+	void UpdateUlt(float DeltaTime);
 };
