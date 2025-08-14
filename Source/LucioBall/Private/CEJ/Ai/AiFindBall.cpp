@@ -14,7 +14,7 @@ AAiFindBall::AAiFindBall()
 
     // 스켈메시 붙이기/위치/스케일 (필요 시 캡슐 사이즈도 조정)
     GetMesh()->SetupAttachment(GetCapsuleComponent());
-    GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+    GetMesh()->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
     GetMesh()->SetRelativeLocation(FVector(0.f, -10.f, 60.f));
     GetMesh()->SetRelativeScale3D(FVector(47.f));
 
