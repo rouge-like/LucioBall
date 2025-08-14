@@ -55,6 +55,7 @@ protected:
 
     // ====== 타깃 태그 ======
 public:
+    
     UPROPERTY(EditAnywhere, Category="AI|Target")
     FName TargetTag = "BP_BouncyBall";  // BP_BouncyBall에 이 태그를 달아두세요
 
