@@ -31,7 +31,7 @@ protected:
 	float Elasticity = 0.9f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Friction = 0.1f;
+	float Friction = 0.35f;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector CurrentVelocity;
@@ -47,9 +47,13 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<AActor> LastAttacker;
+	
 
 	UFUNCTION()
 	void OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	FVector CalculateReflectionAndFriction(const FVector& InVelocity, const FHitResult& Hit);
+	bool CheckGrounded();
 
 public:	
 	// Called every frame

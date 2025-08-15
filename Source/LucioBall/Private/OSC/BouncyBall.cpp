@@ -7,33 +7,13 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-namespace
-{
-	// 반사와 마찰력을 계산하는 최종 헬퍼 함수
-	FVector CalculateReflectionAndFriction(const FVector& InVelocity, const FHitResult& Hit, float Elasticity, float Friction)
-	{
-		const float Dot = InVelocity.Dot(Hit.ImpactNormal);
-		
-		// 마찰력: 스쳐 지나가는 충돌
-		if (Dot > -0.1f)
-		{
-			// 이거 나중에 구현해야 해... 
-			return InVelocity;
-		}
-		
-		// 반사: 정면 충돌
-		const FVector ReflectedVelocity = InVelocity - 2 * Dot * Hit.ImpactNormal;
-		return ReflectedVelocity * Elasticity;
-	}
-}
-
 // Sets default values
 ABouncyBall::ABouncyBall()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphgere"));
 	RootComponent = Sphere;
 	
 	BallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BallMesh"));
@@ -65,9 +45,28 @@ void ABouncyBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 1. 중력 적용
-	const FVector Gravity = FVector(0.0f, 0.0f, GetWorld()->GetGravityZ());
-	CurrentVelocity += Gravity * GravityScale * DeltaTime;
+	// 1. 접지 상태 확인
+	bool bIsOnGround = CheckGrounded();
+	
+	// 1a. 접지가 아닐 경우 중력 적용
+	if (!bIsOnGround)
+	{
+		const FVector Gravity = FVector(0.0f, 0.0f, GetWorld()->GetGravityZ());
+		CurrentVelocity += Gravity * GravityScale * DeltaTime;
+	}
+	// 1b. 접지 일 경우 마찰력 적용
+	else
+	{
+		const FVector FrictionDirection = FVector(CurrentVelocity.X, CurrentVelocity.Y, 0);
+		const float FrictionForce = Friction * DeltaTime;
+
+		if (CurrentVelocity.Size() <= FrictionForce)
+			CurrentVelocity = FVector(0, 0, 0);
+		else
+			CurrentVelocity -= FrictionDirection * Friction * DeltaTime;
+
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation() - FVector(0.f, 0.f, Radius), GetActorLocation() - FVector(0.f, 0.f, Radius) - FrictionDirection * Friction * DeltaTime, 100, FColor::Yellow, 0, 1.0f, 0, 3.f);
+	}
 
 	// 2. 이동 (충돌 반응은 OnBouncyBallHit에서 처리)
 	SetActorLocation(GetActorLocation() + CurrentVelocity * DeltaTime, true);
@@ -80,14 +79,48 @@ void ABouncyBall::Tick(float DeltaTime)
 		const FQuat DeltaRotation(RotationAxis, RotationAngle);
 		BallMesh->AddWorldRotation(DeltaRotation, false);
 	}
+
+	if (bIsOnGround && FMath::Abs(CurrentVelocity.Z) < 5.f)
+	{
+		CurrentVelocity.Z = 0.f;
+	}
+}
+
+FVector ABouncyBall::CalculateReflectionAndFriction(const FVector& InVelocity, const FHitResult& Hit)
+{
+	const float Dot = InVelocity.Dot(Hit.ImpactNormal);
+
+	// 이미 접지 상태이거나 스쳐지나감
+	if (Dot > -0.1f)
+	{
+		return InVelocity;
+	}
+
+	// 반사: 정면 충돌
+	const FVector ReflectedVelocity = InVelocity - 2 * Dot * Hit.ImpactNormal;
+	return ReflectedVelocity * Elasticity;
+}
+
+bool ABouncyBall::CheckGrounded()
+{
+	FHitResult Hit;
+	FVector Start = GetActorLocation();
+	FVector End = Start - FVector(0.f, 0.f, Radius + 1);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+
+	return bHit && Hit.ImpactNormal.Z > 0.9f;
 }
 
 // 최종적으로 완성된 OnHit 로직
 void ABouncyBall::OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// 1. 먼저, 충돌한 표면을 기준으로 공의 기본 반사 속도를 계산합니다.
-	FVector NewVelocity = CalculateReflectionAndFriction(CurrentVelocity, Hit, Elasticity, Friction);
-	
+	FVector NewVelocity = CalculateReflectionAndFriction(CurrentVelocity, Hit);
+
 	// 2. 만약 충돌한 상대가 캐릭터라면, 추가적인 상호작용을 계산합니다.
 	if (ACharacter* HitCharacter = Cast<ACharacter>(OtherActor))
 	{
@@ -100,16 +133,23 @@ void ABouncyBall::OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* Oth
 			const float PushStrength = FVector::DotProduct(CharacterVelocity, PushDirection);
 			
 			// 2a. 캐릭터의 속도를 반사된 공의 속도에 더해줍니다.
-			NewVelocity += PushDirection * PushStrength * Elasticity;
+			NewVelocity += PushDirection * PushStrength * Elasticity * 0.25f;
 
 			// 2b. 충돌로 감속된 캐릭터에게 이전 속도를 되찾아 줍니다.
 			HitCharacter->LaunchCharacter(CharacterVelocity, true, true);
 		}
 	}
+	
+	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint - CurrentVelocity.GetSafeNormal() * 100, Hit.ImpactPoint, 100, FColor::Blue, false, 1.0f, 3.f);
+	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + NewVelocity.GetSafeNormal() * 100, 100, FColor::Green, false, 1.0f, 3.f);
+	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + Hit.ImpactNormal * 100, 100, FColor::Red, false, 1.0f, 3.f);
 
 	// 3. 최종 계산된 속도를 공에 적용합니다.
 	CurrentVelocity = NewVelocity;
 	SetActorLocation(GetActorLocation() + Hit.ImpactNormal * 0.1f);
+
+
+
 }
 
 
