@@ -1,114 +1,172 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
 #include "CEJ/Ai/AiWallRide.h"
-#include "GameFramework/Actor.h"
-#include "GameFramework/Character.h"
-#include "Kismet/KismetMathLibrary.h"
+#include "CEJ/Ai/WallRideComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
-UWallRideComponent::UWallRideComponent()
+// Sets default values
+AAiWallRide::AAiWallRide()
 {
-    PrimaryComponentTick.bCanEverTick = true;
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	WallRideComp = CreateDefaultSubobject<UWallRideComponent>(TEXT("WallRideComp"));
+
+	// 캡슐 크기만 50배 (메시는 그대로 유지)
+	UCapsuleComponent* Capsule = GetCapsuleComponent();
+	Capsule->SetCapsuleSize(42.f * 50.f, 96.f * 50.f, true);
+
+	// 캡슐 충돌 설정
+	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Capsule->SetCollisionObjectType(ECC_Pawn);
+	Capsule->SetCollisionResponseToAllChannels(ECR_Block);
+	Capsule->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	Capsule->SetCollisionResponseToChannel(ECC_Pawn,   ECR_Ignore);
+
+	// 메시 크기/위치 그대로 (충돌은 끔)
+		GetMesh()->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
+		GetMesh()->SetRelativeLocation(FVector(0.f, -10.f, 60.f));
+		GetMesh()->SetRelativeScale3D(FVector(47.f));
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(
+			TEXT("SkeletalMesh'/Game/CEJ/Animations/Skateboarding.Skateboarding'")
+		);
+		static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMatRef(
+			TEXT("Material'/Game/CEJ/Asset/lucio_default_EMr_Mat.lucio_default_EMr_Mat'")
+		);
+
+		if (MeshRef.Succeeded())
+		{
+			GetMesh()->SetSkeletalMesh(MeshRef.Object);
+			if (OverlayMatRef.Succeeded())
+			{
+				GetMesh()->SetOverlayMaterial(OverlayMatRef.Object);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("mesh material 경로 확인 필요"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("mesh 없음~ mesh 경로 확인!"));
+		}
 }
 
-void UWallRideComponent::BeginPlay()
+void AAiWallRide::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
+	//월라이드 중엔 캐릭터무브먼트의 중력을 끌 거라 필요 없음 
 }
 
-FVector UWallRideComponent::GetGravityVector() const
+bool AAiWallRide::FindWall(FVector& OutNormal, FVector& OutTangent)
 {
-    const UWorld* World = GetWorld();
-    const float Gz = World ? World->GetGravityZ() : -980.f; // cm/s^2 (UE 기본 -980)
-    return FVector(0.f, 0.f, Gz);
+	const FVector Start = GetActorLocation() + GetActorUpVector()*50.f;   // 가슴 높이
+	const FVector End   = Start + GetActorForwardVector()*140.f;          // 전방 140
+
+	FHitResult Hit;
+	FCollisionQueryParams P(NAME_None, false, this);
+	// 스피어트레이스가 모서리에서 안정적
+	const float Radius = 20.f;
+	const bool bHit = GetWorld()->SweepSingleByChannel(
+		Hit, Start, End, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(Radius), P
+	);
+
+	if (!bHit) return false;
+
+	const FVector N = Hit.ImpactNormal.GetSafeNormal();
+	const FVector F = GetActorForwardVector();
+	const float   d = FVector::DotProduct(F, N);     // -1 ~ +1
+
+	// 벽으로 적절히 접근 중 
+	if (d > -0.2f || d < -0.9f) return false;
+
+	// 접선 구하고, 좌/우 정렬 (캐릭터 기준 오른쪽과 같은 쪽이면 유지)
+	FVector T = FVector::CrossProduct(N, FVector::UpVector);
+	if (!T.Normalize()) return false;
+	const float side = FVector::DotProduct(GetActorRightVector(), T);
+	if (side < 0.f) T *= -1.f;
+
+	OutNormal  = N;
+	OutTangent = T;
+	return true;
 }
 
-void UWallRideComponent::BeginWallRide(const FVector& InWallNormal, const FVector& InTangent, float CurrentSpeed, float TargetSpeed)
+
+// Called every frame
+void AAiWallRide::Tick(float DeltaTime)
 {
-    WallNormal   = InWallNormal.GetSafeNormal();
-    WallTangent  = InTangent.GetSafeNormal();
-    Speed        = CurrentSpeed;
+	Super::Tick(DeltaTime);
+	if (!WallRideComp) return;
 
-    // 1) 진입 가속도: a_enter = (Vtarget − V0) / T_enter
-    const float SafeTEnter = FMath::Max(0.01f, TEnter);
-    AEnter = (TargetSpeed - CurrentSpeed) / SafeTEnter;
+	if (WallRideComp->bWallRiding)
+	{
+		FVector N, T;
+		if (!FindWall(N, T))
+		{
+			// 기존: NoCollision → 충돌 끄면 움직임/지면 접촉이 꼬임
+			// 항상 원복은 Block 상태로
+			UCapsuleComponent* Capsule = GetCapsuleComponent();
+			Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			Capsule->SetCollisionResponseToAllChannels(ECR_Block);
+			Capsule->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+			Capsule->SetCollisionResponseToChannel(ECC_Pawn,   ECR_Ignore);
 
-    // 2) 이탈 감속도는 이탈 시점에 다시 설정(그때의 V0 기반)하는 편이 안전
-    AExit = 0.f;
+			// 상태 전환
+			//WallRideComp->EndWallRide(); // 필요 시 유지
+			GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+		}
+		return;
+	}
 
-    bWallRiding = true;
-    bEnteringPhase = true;
-    bWallExit = false;
+	// 진입 로직
+	{
+		FVector N, T;
+		if (GetCharacterMovement()->IsFalling() && FindWall(N, T))
+		{
+			const float V0 = GetVelocity().Size();
+			const float Vtarget = WallRideComp->VMaxWall;
+
+			// 진입 직전에도 캡슐 Block 유지
+			UCapsuleComponent* Capsule = GetCapsuleComponent();
+			Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			Capsule->SetCollisionResponseToAllChannels(ECR_Block);
+			Capsule->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+			Capsule->SetCollisionResponseToChannel(ECC_Pawn,   ECR_Ignore);
+
+			WallRideComp->BeginWallRide(N, T, V0, Vtarget);
+			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		}
+	}
 }
 
-void UWallRideComponent::EndWallRide()
+// Called to bind functionality to input
+void AAiWallRide::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-    // 이탈 직전 속도 기준: a_exit = −V0 / T_exit
-    const float SafeTExit = FMath::Max(0.01f, TExit);
-    AExit = -Speed / SafeTExit;
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    bWallExit = true;
-    bWallRiding = false;
-    bEnteringPhase = false;
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AAiWallRide::OnJumpPressed);
 }
 
-void UWallRideComponent::TickComponent(float dt, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+//벽타기 점프 
+void AAiWallRide::OnJumpPressed()
 {
-    Super::TickComponent(dt, TickType, ThisTickFunction);
-    if (dt <= KINDA_SMALL_NUMBER) return;
+	if (WallRideComp && (WallRideComp->bWallRiding || WallRideComp->bWallExit))
+	{
+		// 벽점프: 법선/접선/업 혼합
+		const FVector N = WallRideComp->WallNormal;
+		const FVector T = FVector::CrossProduct(N, FVector::UpVector).GetSafeNormal();
+		FVector JumpDir = (N*0.6f + T*0.3f + FVector::UpVector*0.2f).GetSafeNormal();
 
-    AActor* Owner = GetOwner();
-    if (!Owner) return;
+		LaunchCharacter(JumpDir * 900.f, true, true);
 
-    if (bWallRiding)
-    {
-        // 1) 가속도 구성: 진입 a_enter or 슬라이드(a_friction + 중력 접선성분)
-        const FVector Tangent = ComputeWallTangent();          // 벽 접선 단위벡터
-        const FVector Gravity = GetGravityVector();            // (0,0, -g)
-        const float   aGravTangent = FVector::DotProduct(Gravity, Tangent); // 중력의 접선 성분(부호 포함, cm/s^2)
+		WallRideComp->EndWallRide();
+		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+		return;
+	}
 
-        const float   aSlide = WallFrictionA + aGravTangent;   // 맵/재질 감각에 맞게 WallFrictionA를 살짝 음수로 두면 감속
-        const float   a = bEnteringPhase ? AEnter : aSlide;
-
-        // 2) 속도 적분 + 클램프
-        Speed = FMath::Clamp(Speed + a * dt, 0.f, VMaxWall);
-
-        // 3) 방향/속도 벡터 갱신 (벽 접선 방향으로 이동)
-        Velocity = Tangent * Speed;
-
-        // 4) 위치 적분(스윕 true: 충돌 반영)
-        Owner->AddActorWorldOffset(Velocity * dt, true);
-
-        // 5) 진입 페이즈 종료 판단(목표 속도 근접)
-        if (bEnteringPhase)
-        {
-            const bool Reached = (AEnter >= 0.f) ? (Speed >= VMaxWall * 0.98f) : (Speed <= VMaxWall * 0.98f);
-            // 혹은 일정 시간 경과/속도차 임계값으로 전환
-            if (Reached) bEnteringPhase = false;
-        }
-
-        // 6) 선택: 벽에 "붙는" 느낌(법선 방향 보정)
-        if (StickyNormalForce != 0.f)
-        {
-            // 벽 쪽으로 미세 보정(감각용). 충돌로 튕기는걸 줄이고, 너무 크면 박힘.
-            const FVector Nudge = -WallNormal * StickyNormalForce * dt * dt; // s = 1/2 a t^2 느낌
-            Owner->AddActorWorldOffset(Nudge, true);
-        }
-    }
-    else if (bWallExit)
-    {
-        // 1) 이탈 감속: aExit < 0,  v = max(0, v + aExit * dt)
-        Speed = FMath::Max(0.f, Speed + AExit * dt);
-
-        // 2) 이탈 방향(지상 이동/입력 방향 등) — 여기선 현 Velocity 방향 유지 or 캐릭터 전방 사용
-        const FVector ExitDir = Velocity.IsNearlyZero() ? Owner->GetActorForwardVector().GetSafeNormal() : Velocity.GetSafeNormal();
-        Velocity = ExitDir * Speed;
-
-        // 3) 위치 적분
-        Owner->AddActorWorldOffset(Velocity * dt, true);
-
-        // 4) 멈추면 종료
-        if (Speed <= KINDA_SMALL_NUMBER)
-        {
-            bWallExit = false;
-            Velocity = FVector::ZeroVector;
-        }
-    }
+	Jump(); // 평상시 점프
 }
+
