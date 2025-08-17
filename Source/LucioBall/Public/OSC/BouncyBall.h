@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "BouncyBall.generated.h"
 
+class USphereComponent;
 UCLASS()
 class LUCIOBALL_API ABouncyBall : public AActor
 {
@@ -15,32 +16,52 @@ public:
 	// Sets default values for this actor's properties
 	ABouncyBall();
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> BallMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<USphereComponent> Sphere;
 
 protected:
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BouncyBall Physics")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Elasticity = 0.9f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Friction = 0.35f;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector CurrentVelocity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector AngularVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Radius = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GravityScale = 1.0f;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<AActor> LastAttacker;
+	
 
 	UFUNCTION()
-	void OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	FVector PreviousVelocity;
+	FVector CalculateReflectionAndFriction(const FVector& InVelocity, const FHitResult& Hit);
+	bool CheckGrounded();
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	UFUNCTION(BlueprintCallable, Category = "BouncyBall")
+	UFUNCTION(BlueprintCallable)
 	void BouncyBallAddImpulse(FVector Impulse, AActor* Attacker);
 
-	UFUNCTION(BlueprintCallable, Category = "BouncyBall")
+	UFUNCTION(BlueprintCallable)
 	AActor* GetLastAttacker() const;
 };
