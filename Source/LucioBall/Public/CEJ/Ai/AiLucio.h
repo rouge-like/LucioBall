@@ -74,7 +74,7 @@ public:
     FName BallTag = TEXT("BouncyBall");
 
     UPROPERTY(EditAnywhere, Category="Tags")
-    FName GoalTag = TEXT("GoalPost");
+    FName GoalTag = TEXT("SoccerGoal");
 
     UPROPERTY(EditAnywhere, Category="Move")
     float AcceptanceRadius = 150.f;
