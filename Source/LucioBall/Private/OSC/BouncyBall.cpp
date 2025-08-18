@@ -13,7 +13,8 @@ ABouncyBall::ABouncyBall()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphgere"));
+	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	Sphere->SetSphereRadius(Radius);
 	RootComponent = Sphere;
 	
 	BallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BallMesh"));
@@ -126,6 +127,8 @@ void ABouncyBall::OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* Oth
 	{
 		if (UCharacterMovementComponent* MovementComp = HitCharacter->GetCharacterMovement())
 		{
+			LastAttacker = OtherActor;
+			
 			const FVector CharacterVelocity = MovementComp->GetLastUpdateVelocity();
 			FVector PushDirection = GetActorLocation() - HitCharacter->GetActorLocation();
 			PushDirection.Z = 0.0f;
