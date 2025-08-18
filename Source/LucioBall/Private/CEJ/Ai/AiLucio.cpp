@@ -275,7 +275,7 @@ void AAiLucio::Tick_BallKick(float Dt)
         MoveToLocationSmart(Kick, AcceptanceRadius);
 
         // 볼 근접 시 임펄스(물리 ON 전제)
-        if (FVector::Dist2D(GetActorLocation(), Ball) < 180.f)
+        if (FVector::Dist2D(GetActorLocation(), Ball) < 100.f)
         {
             if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(BallActor->GetRootComponent()))
             {

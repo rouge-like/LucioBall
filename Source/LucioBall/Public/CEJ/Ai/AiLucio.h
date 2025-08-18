@@ -65,7 +65,7 @@ protected:
 public:
 
     UPROPERTY(EditAnywhere, Category="Tags")
-    FName JumpPointTag = TEXT("JumpPoint");
+    FName JumpPointTag = TEXT("JumpPoint4");
 
     UPROPERTY(EditAnywhere, Category="Tags")
     FName WallTag = TEXT("Wall");

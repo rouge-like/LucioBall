@@ -25,34 +25,34 @@ AAiWallRide::AAiWallRide()
 	Capsule->SetCollisionResponseToChannel(ECC_Pawn,   ECR_Ignore);
 
 	// 메시 크기/위치 그대로 (충돌은 끔)
-		GetMesh()->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
-		GetMesh()->SetRelativeLocation(FVector(0.f, -10.f, 60.f));
-		GetMesh()->SetRelativeScale3D(FVector(47.f));
-		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
+	GetMesh()->SetRelativeLocation(FVector(0.f, -10.f, 60.f));
+	GetMesh()->SetRelativeScale3D(FVector(47.f));
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(
-			TEXT("SkeletalMesh'/Game/CEJ/Animations/Skateboarding.Skateboarding'")
-		);
-		static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMatRef(
-			TEXT("Material'/Game/CEJ/Asset/lucio_default_EMr_Mat.lucio_default_EMr_Mat'")
-		);
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(
+		TEXT("SkeletalMesh'/Game/CEJ/Animations/Skateboarding.Skateboarding'")
+	);
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMatRef(
+		TEXT("Material'/Game/CEJ/Asset/lucio_default_EMr_Mat.lucio_default_EMr_Mat'")
+	);
 
-		if (MeshRef.Succeeded())
+	if (MeshRef.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(MeshRef.Object);
+		if (OverlayMatRef.Succeeded())
 		{
-			GetMesh()->SetSkeletalMesh(MeshRef.Object);
-			if (OverlayMatRef.Succeeded())
-			{
-				GetMesh()->SetOverlayMaterial(OverlayMatRef.Object);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("mesh material 경로 확인 필요"));
-			}
+			GetMesh()->SetOverlayMaterial(OverlayMatRef.Object);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("mesh 없음~ mesh 경로 확인!"));
+			UE_LOG(LogTemp, Warning, TEXT("mesh material 경로 확인 필요"));
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("mesh 없음~ mesh 경로 확인!"));
+	}
 }
 
 void AAiWallRide::BeginPlay()
