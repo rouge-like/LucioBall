@@ -35,7 +35,7 @@ void AGoalPost::BeginPlay()
 
 bool AGoalPost::IsActorPlayer(AActor* Actor)
 {
-	if (Actor)
+	if (!Actor)
 		return false;
 
 	APawn* Pawn = Cast<APawn>(Actor);
@@ -44,6 +44,7 @@ bool AGoalPost::IsActorPlayer(AActor* Actor)
 		AController* Controller = Pawn->GetController();
 		if (Controller)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("IsPlayer?? : %d"),Controller->IsPlayerController());
 			return Controller->IsPlayerController();
 		}
 	}
@@ -64,13 +65,13 @@ void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		if (Attacker)
 		{
 			bool IsPlayer = IsActorPlayer(Attacker);
-			bool IsOwnGoal = (IsPlayer ^ IsPlayerTeam);
-
-			LucioBallMode->SetGoalScore(IsPlayerTeam, IsOwnGoal, Attacker->GetName());
+			bool IsOwnGoal = !(IsPlayer ^ IsPlayerTeam);
+			UE_LOG(LogTemp, Warning, TEXT("IsOwn : %d // IsPlayer : %d"),IsOwnGoal, IsPlayer);
+			LucioBallMode->SetGoalScore(!IsPlayerTeam, IsOwnGoal, Attacker->GetName());
 		}
 		else
 		{
-			LucioBallMode->SetGoalScore(IsPlayerTeam);
+			LucioBallMode->SetGoalScore(!IsPlayerTeam);
 		}
 		Ball->Destroy();
 

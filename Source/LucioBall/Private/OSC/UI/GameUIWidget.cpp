@@ -45,3 +45,16 @@ void UGameUIWidget::UpdateUlt(float DeltaTime)
 {
 	UltWidget->UpdateProgress(DeltaTime);
 }
+
+void UGameUIWidget::UseSkill(int Idx)
+{
+	switch (Idx)
+	{
+	case 0:
+		Skill0->UseSkill();
+		break;
+	case 1:
+		Skill1->UseSkill();
+		break;
+	}
+}

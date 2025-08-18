@@ -54,11 +54,11 @@ void ALucioBallMode::SetGoalScore(bool IsPlayerTeam, bool IsOwnGoal, FString Att
 
 	if (IsOwnGoal)
 	{
-		Goal = TEXT("Goal!");
+		Goal = TEXT("OwnGoal!");
 	}
 	else
 	{
-		Goal = TEXT("OwnGoal!");
+		Goal = TEXT("Goal!");
 	}
 	
 	FString Log = AttackerName + TEXT("'s ") + Goal;
