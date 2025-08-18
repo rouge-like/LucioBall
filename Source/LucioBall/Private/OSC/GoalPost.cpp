@@ -64,13 +64,13 @@ void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		if (Attacker)
 		{
 			bool IsPlayer = IsActorPlayer(Attacker);
-			bool IsOwnGoal = (IsPlayer ^ IsPlayerTeam);
+			bool IsOwnGoal = !(IsPlayer ^ IsPlayerTeam);
 
-			LucioBallMode->SetGoalScore(IsPlayerTeam, IsOwnGoal, Attacker->GetName());
+			LucioBallMode->SetGoalScore(!IsPlayerTeam, IsOwnGoal, Attacker->GetName());
 		}
 		else
 		{
-			LucioBallMode->SetGoalScore(IsPlayerTeam);
+			LucioBallMode->SetGoalScore(!IsPlayerTeam);
 		}
 		Ball->Destroy();
 
