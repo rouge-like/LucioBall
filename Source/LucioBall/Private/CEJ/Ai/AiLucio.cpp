@@ -253,7 +253,7 @@ void AAiLucio::Tick_BallKick(float Dt)
     const FVector Ball = BallActor->GetActorLocation();
     const FVector Goal = GoalActor.IsValid()
         ? GoalActor->GetActorLocation()
-        : (Ball + GetActorForwardVector() * 500.f);
+        : (Ball + GetActorForwardVector() * 10.f);
 
     FVector Approach, Kick, DirToGoal;
     ComputeBallApproach(Ball, Goal, Approach, Kick, DirToGoal);
@@ -275,7 +275,7 @@ void AAiLucio::Tick_BallKick(float Dt)
         MoveToLocationSmart(Kick, AcceptanceRadius);
 
         // 볼 근접 시 임펄스(물리 ON 전제)
-        if (FVector::Dist2D(GetActorLocation(), Ball) < 100.f)
+        if (FVector::Dist2D(GetActorLocation(), Ball) < 10.f)
         {
             if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(BallActor->GetRootComponent()))
             {

@@ -77,7 +77,7 @@ public:
     FName GoalTag = TEXT("SoccerGoal");
 
     UPROPERTY(EditAnywhere, Category="Move")
-    float AcceptanceRadius = 150.f;
+    float AcceptanceRadius = 0.1f;
 
     // 점프
     UPROPERTY(EditAnywhere, Category="Jump")
