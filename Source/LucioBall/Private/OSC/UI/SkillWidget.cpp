@@ -18,6 +18,8 @@ void USkillWidget::NativeConstruct()
 			Inner->SetBrushFromMaterial(Material);
 		}
 	}
+
+	ElapsedTime = Duration;
 }
 
 
@@ -31,4 +33,9 @@ void USkillWidget::UpdateProgress(float DeltaTime)
 	}
 	
 	Material->SetScalarParameterValue(TEXT("Progress"), ElapsedTime / Duration);
+}
+
+void USkillWidget::UseSkill()
+{
+	ElapsedTime = 0;
 }

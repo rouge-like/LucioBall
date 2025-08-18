@@ -29,6 +29,9 @@ public:
 	float Duration = 1.0f;
 	
 	void UpdateProgress(float DeltaTime);
+
+	UFUNCTION(BlueprintCallable)
+	void UseSkill();
 	
 protected:
 	virtual void NativeConstruct() override;

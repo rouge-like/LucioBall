@@ -27,5 +27,6 @@ private:
 	TObjectPtr<UGameUIWidget> GameUIWidget;
 
 public:
+	UFUNCTION(BlueprintCallable)
 	UGameUIWidget* GetGameUIWidget() const { return GameUIWidget; };
 };

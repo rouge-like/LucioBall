@@ -46,4 +46,7 @@ public:
 	void UpdateGoalText(FText Text);
 	void UpdateSkill(int Idx, float Sec);
 	void UpdateUlt(float DeltaTime);
+	
+	UFUNCTION(BlueprintCallable)
+	void UseSkill(int Idx);
 };
