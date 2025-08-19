@@ -10,7 +10,7 @@ public class LucioBall : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule", "AIModule" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule", "AIModule", "Niagara" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

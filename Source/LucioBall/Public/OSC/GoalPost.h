@@ -7,7 +7,8 @@
 #include "GoalPost.generated.h"
 
 class UBoxComponent;
-
+class UNiagaraSystem;
+class UTextRenderComponent;
 UCLASS()
 class LUCIOBALL_API AGoalPost : public AActor
 {
@@ -24,10 +25,13 @@ public:
 	TObjectPtr<UBoxComponent> BoxCollision;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	bool IsPlayerTeam;
+	bool bIsPlayerTeam;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	TObjectPtr<UParticleSystem> GoalVFX;
+	TObjectPtr<UNiagaraSystem> GoalVFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	TObjectPtr<UTextRenderComponent> GolText;
 
 protected:
 	// Called when the game starts or when spawned
@@ -38,6 +42,8 @@ private:
 	void OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	bool IsActorPlayer(AActor* Actor);
+	bool bShowText = false;
+	float CurrentTime = 0;
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

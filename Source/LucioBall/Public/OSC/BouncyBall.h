@@ -33,12 +33,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Friction = 0.35f;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector CurrentVelocity;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector AngularVelocity;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Radius = 100.f;
 
@@ -64,4 +58,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	AActor* GetLastAttacker() const;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector CurrentVelocity;
 };

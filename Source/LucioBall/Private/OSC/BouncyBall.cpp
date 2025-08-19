@@ -150,9 +150,6 @@ void ABouncyBall::OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* Oth
 	// 3. 최종 계산된 속도를 공에 적용합니다.
 	CurrentVelocity = NewVelocity;
 	SetActorLocation(GetActorLocation() + Hit.ImpactNormal * 0.1f);
-
-
-
 }
 
 

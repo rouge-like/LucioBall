@@ -7,7 +7,8 @@
 #include "Components/BoxComponent.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "NiagaraFunctionLibrary.h"
+#include "Components/TextRenderComponent.h"
 
 // Sets default values
 AGoalPost::AGoalPost()
@@ -25,6 +26,11 @@ AGoalPost::AGoalPost()
 	BoxCollision->SetNotifyRigidBodyCollision(true);
 
 	RootComponent = BoxCollision;
+
+	GolText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("GolText"));
+	GolText->SetupAttachment(RootComponent);
+	GolText->SetText(FText::FromString("GOL!"));
+	GolText->SetTextRenderColor(FColor(255,255,0,0));
 }
 
 // Called when the game starts or when spawned
@@ -65,27 +71,22 @@ void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		if (Attacker)
 		{
 			bool IsPlayer = IsActorPlayer(Attacker);
-			bool IsOwnGoal = !(IsPlayer ^ IsPlayerTeam);
+			bool IsOwnGoal = !(IsPlayer ^ bIsPlayerTeam);
 			UE_LOG(LogTemp, Warning, TEXT("IsOwn : %d // IsPlayer : %d"),IsOwnGoal, IsPlayer);
-			LucioBallMode->SetGoalScore(!IsPlayerTeam, IsOwnGoal, Attacker->GetName());
+			LucioBallMode->SetGoalScore(!bIsPlayerTeam, IsOwnGoal, Attacker->GetName());
 		}
 		else
 		{
-			LucioBallMode->SetGoalScore(!IsPlayerTeam);
+			LucioBallMode->SetGoalScore(!bIsPlayerTeam);
 		}
 		Ball->Destroy();
 
 		if (GoalVFX)
 		{
-			UGameplayStatics::SpawnEmitterAtLocation(
-GetWorld(),
-GoalVFX,
-GetActorLocation(),
-GetActorRotation(),
-FVector(3, 3, 3),
-true
-			);
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,GoalVFX,GetActorLocation(), GetActorRotation(), FVector(3.0f),true,true);
 		}
+
+		bShowText = true;
 	}
 }
 
@@ -94,5 +95,27 @@ true
 void AGoalPost::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bShowText)
+	{
+		CurrentTime += DeltaTime;
+
+		float Alpha = CurrentTime;
+
+		if (Alpha >= 2.0f)
+		{
+			bShowText = false;
+			GolText->SetTextRenderColor(FColor(255,255,0, 0));
+			CurrentTime = 0;
+		}
+		else if (Alpha >= 1.0f)
+		{
+			GolText->SetTextRenderColor(FColor(255,255,0,(2 - Alpha) * 255));
+		}
+		else
+		{
+			GolText->SetTextRenderColor(FColor(255,255,0,Alpha * 255));
+		}
+	}
 }
 
