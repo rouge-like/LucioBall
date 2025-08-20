@@ -50,7 +50,6 @@ bool AGoalPost::IsActorPlayer(AActor* Actor)
 		AController* Controller = Pawn->GetController();
 		if (Controller)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("IsPlayer?? : %d"),Controller->IsPlayerController());
 			return Controller->IsPlayerController();
 		}
 	}
@@ -72,7 +71,7 @@ void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		{
 			bool IsPlayer = IsActorPlayer(Attacker);
 			bool IsOwnGoal = !(IsPlayer ^ bIsPlayerTeam);
-			UE_LOG(LogTemp, Warning, TEXT("IsOwn : %d // IsPlayer : %d"),IsOwnGoal, IsPlayer);
+			
 			LucioBallMode->SetGoalScore(!bIsPlayerTeam, IsOwnGoal, Attacker->GetName());
 		}
 		else

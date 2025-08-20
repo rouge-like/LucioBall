@@ -11,14 +11,12 @@ void UUltGaugeWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (auto FillBrush = Gauge->Brush.GetResourceObject())
+	if (MaterialInstance)
 	{
-		if (auto Mat =  Cast<UMaterialInstance>(FillBrush))
-		{
-			Material = UMaterialInstanceDynamic::Create(Mat, this);
-			Gauge->SetBrushFromMaterial(Material);
-		}
+		Material = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+		Gauge->SetBrushFromMaterial(Material);
 	}
+	
 }
 
 void UUltGaugeWidget::UpdateProgress(float DeltaTime)

@@ -10,13 +10,11 @@ void USkillWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (auto FillBrush = Inner->Brush.GetResourceObject())
+
+	if (MaterialInstance)
 	{
-		if (auto Mat =  Cast<UMaterialInstance>(FillBrush))
-		{
-			Material = UMaterialInstanceDynamic::Create(Mat, this);
-			Inner->SetBrushFromMaterial(Material);
-		}
+		Material = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+		Inner->SetBrushFromMaterial(Material);
 	}
 
 	ElapsedTime = Duration;

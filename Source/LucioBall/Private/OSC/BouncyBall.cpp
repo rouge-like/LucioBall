@@ -3,9 +3,12 @@
 
 #include "OSC/BouncyBall.h"
 #include "Components/SphereComponent.h"
+#include "Components/SplineComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABouncyBall::ABouncyBall()
@@ -19,6 +22,8 @@ ABouncyBall::ABouncyBall()
 	
 	BallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BallMesh"));
 	BallMesh->SetupAttachment(RootComponent);
+	BallMesh->SetSimulatePhysics(false);
+	BallMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("/Engine/BasicShapes/Sphere"));
 
@@ -29,9 +34,15 @@ ABouncyBall::ABouncyBall()
 
 	Sphere->SetSimulatePhysics(false);
 	Sphere->SetNotifyRigidBodyCollision(true);
-	
-	// 모든 충돌은 OnBouncyBallHit을 통해 처리하도록 설정합니다.
 	Sphere->OnComponentHit.AddDynamic(this, &ABouncyBall::OnBouncyBallHit);
+
+	BallWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("BallWidget"));
+	BallWidget->SetupAttachment(Sphere);
+
+	GroundChecker = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Spline"));
+	GroundChecker->SetupAttachment(Sphere);
+	GroundChecker->SetSimulatePhysics(false);
+	GroundChecker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 // Called when the game starts or when spawned
@@ -46,8 +57,18 @@ void ABouncyBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	FHitResult Hit;
+	FVector Start = GetActorLocation();
+	FVector End = Start - FVector(0.f, 0.f, 20000);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+	float Height = (GetActorLocation() - Hit.ImpactPoint).Length() - Radius;
+	
 	// 1. 접지 상태 확인
-	bool bIsOnGround = CheckGrounded();
+	bool bIsOnGround = Height < 1 && Hit.ImpactNormal.Z > 0.9f;
 	
 	// 1a. 접지가 아닐 경우 중력 적용
 	if (!bIsOnGround)
@@ -85,6 +106,26 @@ void ABouncyBall::Tick(float DeltaTime)
 	{
 		CurrentVelocity.Z = 0.f;
 	}
+
+	// 공 위젯 카메라에게 항상 보이도록
+	if (BallWidget)
+	{
+		APlayerCameraManager* CamManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+		if (CamManager)
+		{
+			FVector CamLocation = CamManager->GetCameraLocation();
+			FVector ToCamera = CamLocation - BallWidget->GetComponentLocation();
+			FRotator LookAtRotation = FRotationMatrix::MakeFromX(ToCamera).Rotator();
+
+			// Roll 은 고정
+			LookAtRotation.Roll = 0.f;
+
+			BallWidget->SetWorldRotation(LookAtRotation);
+		}
+	}
+	GroundChecker->SetWorldLocation(Hit.ImpactPoint);
+	GroundChecker->SetWorldScale3D(FVector(1,1,Height - 1));
+	
 }
 
 FVector ABouncyBall::CalculateReflectionAndFriction(const FVector& InVelocity, const FHitResult& Hit)
@@ -102,19 +143,6 @@ FVector ABouncyBall::CalculateReflectionAndFriction(const FVector& InVelocity, c
 	return ReflectedVelocity * Elasticity;
 }
 
-bool ABouncyBall::CheckGrounded()
-{
-	FHitResult Hit;
-	FVector Start = GetActorLocation();
-	FVector End = Start - FVector(0.f, 0.f, Radius + 1);
-
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
-
-	return bHit && Hit.ImpactNormal.Z > 0.9f;
-}
 
 // 최종적으로 완성된 OnHit 로직
 void ABouncyBall::OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)

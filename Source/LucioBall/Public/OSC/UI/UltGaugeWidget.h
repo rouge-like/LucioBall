@@ -33,6 +33,9 @@ public:
 	float Duration = 15.0f;
 	
 	void UpdateProgress(float DeltaTime);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UMaterialInstance* MaterialInstance;
 protected:
 	virtual void NativeConstruct() override;	
 };

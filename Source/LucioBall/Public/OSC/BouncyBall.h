@@ -7,6 +7,9 @@
 #include "BouncyBall.generated.h"
 
 class USphereComponent;
+class UWidgetComponent;
+class USplineComponent;
+
 UCLASS()
 class LUCIOBALL_API ABouncyBall : public AActor
 {
@@ -21,6 +24,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<USphereComponent> Sphere;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UWidgetComponent> BallWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UStaticMeshComponent> GroundChecker;
 
 protected:
 	
@@ -47,7 +56,6 @@ protected:
 	void OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	FVector CalculateReflectionAndFriction(const FVector& InVelocity, const FHitResult& Hit);
-	bool CheckGrounded();
 
 public:	
 	// Called every frame
