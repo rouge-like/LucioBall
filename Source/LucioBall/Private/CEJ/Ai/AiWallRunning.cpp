@@ -17,10 +17,10 @@ AAiWallRunning::AAiWallRunning()
 
 	GetMesh()->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 	GetMesh()->SetRelativeLocation(FVector(0.f, -10.f, 60.f));
-	GetMesh()->SetRelativeScale3D(FVector(47.f));
-
+	//GetMesh()->SetRelativeScale3D(FVector(47.f));
+	
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(
-		TEXT("SkeletalMesh'/Game/CEJ/Animations/Skateboarding.Skateboarding'")
+		TEXT("SkeletalMesh'/Game/CEJ/Animations/StaySkateboarding.StaySkateboarding'")
 	);
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMatRef(
 		TEXT("Material'/Game/CEJ/Asset/lucio_default_EMr_Mat.lucio_default_EMr_Mat'")
