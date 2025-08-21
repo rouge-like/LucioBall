@@ -171,9 +171,9 @@ void ABouncyBall::OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* Oth
 		}
 	}
 	
-	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint - CurrentVelocity.GetSafeNormal() * 100, Hit.ImpactPoint, 100, FColor::Blue, false, 1.0f, 3.f);
-	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + NewVelocity.GetSafeNormal() * 100, 100, FColor::Green, false, 1.0f, 3.f);
-	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + Hit.ImpactNormal * 100, 100, FColor::Red, false, 1.0f, 3.f);
+	// DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint - CurrentVelocity.GetSafeNormal() * 100, Hit.ImpactPoint, 100, FColor::Blue, false, 1.0f, 3.f);
+	// DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + NewVelocity.GetSafeNormal() * 100, 100, FColor::Green, false, 1.0f, 3.f);
+	// DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + Hit.ImpactNormal * 100, 100, FColor::Red, false, 1.0f, 3.f);
 
 	// 3. 최종 계산된 속도를 공에 적용합니다.
 	CurrentVelocity = NewVelocity;

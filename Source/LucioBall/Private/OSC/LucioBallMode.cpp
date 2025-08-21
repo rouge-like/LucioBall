@@ -21,23 +21,53 @@ void ALucioBallMode::BeginPlay()
 
 	CurrentTime = Time;
 	HUD = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetHUD<AGameHUD>();
+
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController)
+	{
+		FInputModeGameOnly InputMode;
+		
+		PlayerController->SetInputMode(InputMode);
+		PlayerController->bShowMouseCursor = false;
+	}
 }
 
 void ALucioBallMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	CurrentTime -= DeltaTime;
-
-	if (HUD)
+	if (CurrentTime > 0.0f)
 	{
-		UGameUIWidget* GameUI = HUD->GetGameUIWidget();
-		GameUI->UpdateTimer(CurrentTime);
-		GameUI->UpdateSkill(0, DeltaTime);
-		GameUI->UpdateSkill(1, DeltaTime);
-		GameUI->UpdateUlt(DeltaTime);
+		CurrentTime -= DeltaTime;
 	}
-	
+	else
+	{
+		CurrentTime = 0.0f;
+		if (!bIsGameEnding)
+		{
+			bIsGameEnding = true;
+		}
+	}
+
+	if (bIsGameEnding)
+	{
+		SlowdownTimer += DeltaTime;
+		float Alpha = FMath::Clamp(SlowdownTimer / SlowdownDuration, 0.0f, 1.0f);
+		float NewTimeDilation = FMath::Lerp(1.0f, 0.2f, Alpha);
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), NewTimeDilation);
+
+		if (SlowdownTimer >= SlowdownDuration)
+		{
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+			UGameplayStatics::OpenLevel(GetWorld(), TEXT("LobbyMap"));
+		}
+	}
+
+	UGameUIWidget* GameUI = HUD->GetGameUIWidget();
+	GameUI->UpdateTimer(CurrentTime);
+	GameUI->UpdateSkill(0, DeltaTime);
+	GameUI->UpdateSkill(1, DeltaTime);
+	GameUI->UpdateUlt(DeltaTime);
 }
 
 void ALucioBallMode::SpawnBouncyBall()

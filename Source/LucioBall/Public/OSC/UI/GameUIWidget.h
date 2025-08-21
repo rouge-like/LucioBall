@@ -49,4 +49,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void UseSkill(int Idx);
+	
+	UFUNCTION(BlueprintCallable)
+	void UseUlt();
 };

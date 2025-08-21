@@ -7,6 +7,11 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 
+void UUltGaugeWidget::UseUlt()
+{
+	ElapsedTime = 0;
+}
+
 void UUltGaugeWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
