@@ -61,5 +61,5 @@ void UGameUIWidget::UseSkill(int Idx)
 
 void UGameUIWidget::UseUlt()
 {
-	
+	UltWidget->UseUlt();
 }

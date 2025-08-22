@@ -30,6 +30,8 @@ private:
 	
 	UFUNCTION()
 	void SpawnBouncyBall();
+
+	void OnGameEnd();
 	
 public:
 	ALucioBallMode();

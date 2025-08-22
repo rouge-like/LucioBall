@@ -16,12 +16,21 @@ class UTextWidget;
 class USkillWidget;
 class UUltGaugeWidget;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVictory);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDefeat);
+
 UCLASS()
 class LUCIOBALL_API UGameUIWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintAssignable)
+	FOnVictory OnVictoryDelegate;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnDefeat OnDefeatDelegate;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UScoreWidget> ScoreWidget;
 
