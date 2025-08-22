@@ -57,7 +57,7 @@ void ALucioBallMode::Tick(float DeltaTime)
 			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
 			
 		}
-		if (SlowdownTimer >= 2.8f)
+		if (SlowdownTimer >= 2.0f)
 		{
 			UGameplayStatics::OpenLevel(GetWorld(), TEXT("LobbyMap"));
 		}
