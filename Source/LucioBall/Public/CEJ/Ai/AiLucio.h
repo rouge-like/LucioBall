@@ -120,6 +120,9 @@ public:
     UPROPERTY(EditAnywhere, Category="Debug")
     bool bDebug = true;
 
+	UPROPERTY()
+	UAnimSequence* MoveAnim = nullptr;
+
 protected:
     // 상태/타깃 핸들
     ELucioAIState State = ELucioAIState::SeekJumpPoint;
@@ -139,4 +142,7 @@ protected:
     float MoveCmdInterval = 0.2f; // 과도한 MoveTo 호출 방지
 	
 	AAIController* CachedAI;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Animation")
+	bool bIsPlayingJumpAnim = false;
 };

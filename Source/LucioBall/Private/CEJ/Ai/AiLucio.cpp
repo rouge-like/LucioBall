@@ -25,9 +25,9 @@ AAiLucio::AAiLucio()
     GetMesh()->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
     GetMesh()->SetRelativeLocation(FVector(0.f, -10.f, 60.f));
     GetMesh()->SetRelativeScale3D(FVector(47.f));
-
+    
     static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(
-        TEXT("SkeletalMesh'/Game/CEJ/Animations/Skateboarding.Skateboarding'")
+        TEXT("SkeletalMesh'/Game/CEJ/Animations/StaySkateboarding.StaySkateboarding'")
     );
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMatRef(
         TEXT("Material'/Game/CEJ/Asset/lucio_default_EMr_Mat.lucio_default_EMr_Mat'")
@@ -49,6 +49,22 @@ AAiLucio::AAiLucio()
     {
         UE_LOG(LogTemp, Warning, TEXT("mesh 없음~ mesh 경로 확인!"));
     }
+
+    static ConstructorHelpers::FObjectFinder<UAnimSequence> MoveAnimRef(
+        TEXT("AnimSequence'/Game/CEJ/Animations/Skateboarding_Anim.Skateboarding_Anim'")
+    );
+
+    if (MoveAnimRef.Succeeded())
+    {
+        MoveAnim = MoveAnimRef.Object;
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("애니메이션 찾기 실패"));
+    }
+
+    GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+
 }
 
 void AAiLucio::BeginPlay()
@@ -84,6 +100,30 @@ void AAiLucio::Tick(float DeltaSeconds)
         case ELucioAIState::BallKick:      Tick_BallKick(DeltaSeconds);      break;
         default: break;
     }
+
+    if (!MoveAnim) return;
+
+    const float Speed2D = GetVelocity().Size2D();
+    const float MoveThreshold = 10.f; // 멈춤/이동 판단 임계값
+
+    if (Speed2D > MoveThreshold)
+    {
+        // 이동 중: 애님이 안 돌고 있으면 루프 재생
+        if (!GetMesh()->IsPlaying())
+        {
+            GetMesh()->PlayAnimation(MoveAnim, /*bLoop*/ true);
+        }
+    }
+    else
+    {
+        // 정지 상태: 애님 정지(또는 Idle 애님으로 교체)
+        if (GetMesh()->IsPlaying())
+        {
+            GetMesh()->Stop();
+            // Idle 애님이 있으면 여기서 PlayAnimation(IdleAnim, true) 등으로 전환
+        }
+    }
+    
 
 }
 
@@ -153,12 +193,24 @@ void AAiLucio::Tick_SeekJumpPoint(float Dt)
     // 근접 시 점프
     if (Dist2D <= FMath::Max(ApproachTolerance, AcceptanceRadius * 1.3f))
     {
-        Jump(); // ACharacter::Jump()는 void (반환값 없음)
 
-        // 필요시 보조 런치(과하면 주석 처리)
-        // LaunchCharacter(FVector(0,0,GetCharacterMovement()->JumpZVelocity), false, true);
+        Jump(); // ACharacter::Jump()는 void (반환값 없음)
+        
+        if (USkeletalMeshComponent* MeshComp = GetMesh())
+        {
+            if (UAnimInstance* AnimInstance = MeshComp->GetAnimInstance())
+            {
+                if (UAnimSequence* JumpAnim = LoadObject<UAnimSequence>(nullptr,
+                    TEXT("/Script/Engine.AnimSequence'/Game/CEJ/Animations/Jumping_Anim.Jumping_Anim'")))
+                {
+                    MeshComp->PlayAnimation(JumpAnim, false);
+                }
+            }
+        }
 
         GotoState(ELucioAIState::Jumping);
+
+        
     }
 }
 
