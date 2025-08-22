@@ -121,7 +121,13 @@ public:
     bool bDebug = true;
 
 	UPROPERTY()
+	UAnimSequence* CurrentAnim = nullptr;
+	UPROPERTY()
 	UAnimSequence* MoveAnim = nullptr;
+	UPROPERTY()
+	UAnimSequence* StayAnim= nullptr;
+	void UpdateLocomotionAnim(float Speed);
+
 
 protected:
     // 상태/타깃 핸들
@@ -145,4 +151,6 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Animation")
 	bool bIsPlayingJumpAnim = false;
+
+	
 };
