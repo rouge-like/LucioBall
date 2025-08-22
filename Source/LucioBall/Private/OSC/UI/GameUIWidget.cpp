@@ -58,3 +58,8 @@ void UGameUIWidget::UseSkill(int Idx)
 		break;
 	}
 }
+
+void UGameUIWidget::UseUlt()
+{
+	
+}
