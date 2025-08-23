@@ -36,6 +36,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UMaterialInstance* MaterialInstance;
+
+	UFUNCTION(BlueprintCallable)
+	void UseUlt();
 protected:
 	virtual void NativeConstruct() override;	
 };

@@ -57,6 +57,8 @@ void ABouncyBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	float GravityZ = GetWorld()->GetGravityZ() * GravityScale;
+	
 	FHitResult Hit;
 	FVector Start = GetActorLocation();
 	FVector End = Start - FVector(0.f, 0.f, 20000);
@@ -65,7 +67,7 @@ void ABouncyBall::Tick(float DeltaTime)
 	Params.AddIgnoredActor(this);
 
 	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
-	float Height = (GetActorLocation() - Hit.ImpactPoint).Length() - Radius;
+	float Height = (Start - Hit.ImpactPoint).Length() - Radius;
 	
 	// 1. 접지 상태 확인
 	bool bIsOnGround = Height < 1 && Hit.ImpactNormal.Z > 0.9f;
@@ -73,8 +75,8 @@ void ABouncyBall::Tick(float DeltaTime)
 	// 1a. 접지가 아닐 경우 중력 적용
 	if (!bIsOnGround)
 	{
-		const FVector Gravity = FVector(0.0f, 0.0f, GetWorld()->GetGravityZ());
-		CurrentVelocity += Gravity * GravityScale * DeltaTime;
+		const FVector Gravity = FVector(0.0f, 0.0f, GravityZ);
+		CurrentVelocity += Gravity * DeltaTime;
 	}
 	// 1b. 접지 일 경우 마찰력 적용
 	else
@@ -87,11 +89,11 @@ void ABouncyBall::Tick(float DeltaTime)
 		else
 			CurrentVelocity -= FrictionDirection * Friction * DeltaTime;
 
-		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation() - FVector(0.f, 0.f, Radius), GetActorLocation() - FVector(0.f, 0.f, Radius) - FrictionDirection * Friction * DeltaTime, 100, FColor::Yellow, 0, 1.0f, 0, 3.f);
+		DrawDebugDirectionalArrow(GetWorld(), Start - FVector(0.f, 0.f, Radius), GetActorLocation() - FVector(0.f, 0.f, Radius) - FrictionDirection * Friction * DeltaTime, 100, FColor::Yellow, 0, 1.0f, 0, 3.f);
 	}
 
 	// 2. 이동 (충돌 반응은 OnBouncyBallHit에서 처리)
-	SetActorLocation(GetActorLocation() + CurrentVelocity * DeltaTime, true);
+	SetActorLocation(Start + CurrentVelocity * DeltaTime, true);
 
 	// 3. 시각적 회전
 	if (!CurrentVelocity.IsNearlyZero() && Radius > 0.f)
@@ -123,9 +125,33 @@ void ABouncyBall::Tick(float DeltaTime)
 			BallWidget->SetWorldRotation(LookAtRotation);
 		}
 	}
+
+	// 그라운드 체커 그리기
 	GroundChecker->SetWorldLocation(Hit.ImpactPoint);
-	GroundChecker->SetWorldScale3D(FVector(1,1,Height - 1));
+	GroundChecker->SetWorldScale3D(FVector(1,1,Height));
+	GroundChecker->SetVisibility(!bIsOnGround);
 	
+	// 이차 방정식의 계수: at^2 + bt + c = 0
+	float a = 0.5f * GravityZ;
+	float b = CurrentVelocity.Z;
+	float c = Height;
+
+	// 판별식
+	float Discriminant = b * b - 4 * a * c;
+
+	if (Discriminant >= 0)
+	{
+		// 시간 계산
+		float TimeToLand = (-b - FMath::Sqrt(Discriminant)) / (2 * a);
+
+		if (TimeToLand > 0)
+		{
+			// 착지 위치 계산
+			LandLocation = Start + FVector(CurrentVelocity.X, CurrentVelocity.Y, 0) * TimeToLand;
+			LandLocation.Z = Hit.ImpactPoint.Z;
+			DrawDebugDirectionalArrow(GetWorld(), LandLocation, LandLocation + Hit.ImpactNormal * 100, 100, FColor::Red, false, 1.0f, 3.f);
+		}
+	}
 }
 
 FVector ABouncyBall::CalculateReflectionAndFriction(const FVector& InVelocity, const FHitResult& Hit)
@@ -171,13 +197,15 @@ void ABouncyBall::OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* Oth
 		}
 	}
 	
-	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint - CurrentVelocity.GetSafeNormal() * 100, Hit.ImpactPoint, 100, FColor::Blue, false, 1.0f, 3.f);
-	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + NewVelocity.GetSafeNormal() * 100, 100, FColor::Green, false, 1.0f, 3.f);
-	DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + Hit.ImpactNormal * 100, 100, FColor::Red, false, 1.0f, 3.f);
+	// DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint - CurrentVelocity.GetSafeNormal() * 100, Hit.ImpactPoint, 100, FColor::Blue, false, 1.0f, 3.f);
+	// DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + NewVelocity.GetSafeNormal() * 100, 100, FColor::Green, false, 1.0f, 3.f);
+	// DrawDebugDirectionalArrow(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + Hit.ImpactNormal * 100, 100, FColor::Red, false, 1.0f, 3.f);
 
 	// 3. 최종 계산된 속도를 공에 적용합니다.
 	CurrentVelocity = NewVelocity;
 	SetActorLocation(GetActorLocation() + Hit.ImpactNormal * 0.1f);
+
+	//GetLandLocation();
 }
 
 
@@ -185,9 +213,4 @@ void ABouncyBall::BouncyBallAddImpulse(FVector Impulse, AActor* Attacker)
 {
 	CurrentVelocity += Impulse;
 	LastAttacker = Attacker;
-}
-
-AActor* ABouncyBall::GetLastAttacker() const
-{
-	return LastAttacker;
 }
