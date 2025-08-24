@@ -50,8 +50,12 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<AActor> LastAttacker;
-	
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector CurrentVelocity;
+
+	FVector LandLocation;
+	
 	UFUNCTION()
 	void OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -65,8 +69,11 @@ public:
 	void BouncyBallAddImpulse(FVector Impulse, AActor* Attacker);
 
 	UFUNCTION(BlueprintCallable)
-	AActor* GetLastAttacker() const;
+	AActor* GetLastAttacker() const { return LastAttacker; };
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector CurrentVelocity;
+	UFUNCTION(BlueprintCallable)
+	FVector GetBouncyBallVelocity() const { return CurrentVelocity; }
+	
+	UFUNCTION(BlueprintCallable)
+	FVector GetLandLocation() const { return LandLocation; }
 };

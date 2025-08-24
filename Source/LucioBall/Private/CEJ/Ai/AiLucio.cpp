@@ -22,12 +22,12 @@ AAiLucio::AAiLucio()
     GetCharacterMovement()->GravityScale  = 1.0f;
     GetCharacterMovement()->AirControl    = 0.6f;
 
-    GetMesh()->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
+    GetMesh()->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
     GetMesh()->SetRelativeLocation(FVector(0.f, -10.f, 60.f));
     GetMesh()->SetRelativeScale3D(FVector(47.f));
     
     static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(
-        TEXT("SkeletalMesh'/Game/CEJ/Animations/StaySkateboarding.StaySkateboarding'")
+        TEXT("SkeletalMesh'/Game/CEJ/Animations/Stay.Stay'")
     );
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMatRef(
         TEXT("Material'/Game/CEJ/Asset/lucio_default_EMr_Mat.lucio_default_EMr_Mat'")
@@ -49,20 +49,26 @@ AAiLucio::AAiLucio()
     {
         UE_LOG(LogTemp, Warning, TEXT("mesh 없음~ mesh 경로 확인!"));
     }
+    
+    GetMesh()->SetAnimationMode(EAnimationMode::Type::AnimationSingleNode);
+
+    static ConstructorHelpers::FObjectFinder<UAnimSequence> StayAnimRef(
+        TEXT("AnimSequence'/Game/CEJ/Animations/Stay_Anim.Stay_Anim'")
+    );
+    if (StayAnimRef.Succeeded()) StayAnim = StayAnimRef.Object;
 
     static ConstructorHelpers::FObjectFinder<UAnimSequence> MoveAnimRef(
         TEXT("AnimSequence'/Game/CEJ/Animations/Skateboarding_Anim.Skateboarding_Anim'")
     );
+    if (MoveAnimRef.Succeeded()) MoveAnim = MoveAnimRef.Object;
 
-    if (MoveAnimRef.Succeeded())
+    // 시작은 Idle로
+    if (StayAnim)
     {
-        MoveAnim = MoveAnimRef.Object;
+        GetMesh()->PlayAnimation(StayAnim, true);
+        CurrentAnim = StayAnim;
     }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("애니메이션 찾기 실패"));
-    }
-
+    
     GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
 
 }
@@ -239,6 +245,7 @@ void AAiLucio::Tick_Jumping(float Dt)
                 const FVector Vt     = FVector::VectorPlaneProject(V, WallNormal);
                 const FVector VtDir  = Vt.GetSafeNormal();
                 const float   Speed  = FMath::Clamp(Vt.Size(), 600.f, MaxWallSpeed);
+
                 LaunchCharacter(VtDir * Speed, true, true);
 
                 GotoState(ELucioAIState::WallRun);
@@ -252,6 +259,9 @@ void AAiLucio::Tick_Jumping(float Dt)
     {
         GotoState(ELucioAIState::BallKick);
     }
+
+    const float Speed = GetVelocity().Size();
+    UpdateLocomotionAnim(Speed);
 }
 
 void AAiLucio::Tick_WallRun(float Dt)
@@ -446,5 +456,18 @@ void AAiLucio::ComputeBallApproach(const FVector& Ball, const FVector& Goal,
     OutDirToGoal = (Goal - Ball).GetSafeNormal();
     OutApproach  = Ball - OutDirToGoal * BehindBallDistance;
     OutKick      = Ball + OutDirToGoal * KickThroughDistance;
+}
+
+void AAiLucio::UpdateLocomotionAnim(float Speed)
+{
+    const bool bIdle = Speed < 0.f;
+    UAnimSequence* Desired = bIdle ? StayAnim : MoveAnim;
+
+    if (Desired && Desired != CurrentAnim &&
+        GetMesh()->GetAnimationMode() == EAnimationMode::AnimationSingleNode)
+    {
+        GetMesh()->PlayAnimation(Desired, /*bLoop=*/true);
+        CurrentAnim = Desired;
+    }
 }
 

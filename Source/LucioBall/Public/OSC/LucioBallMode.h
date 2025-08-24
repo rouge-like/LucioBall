@@ -23,6 +23,10 @@ private:
 	FTimerHandle TimerHandle;
 	
 	AGameHUD* HUD;
+
+	bool bIsGameEnding = false;
+	float SlowdownTimer = 0.0f;
+	const float SlowdownDuration = 1.0f;
 	
 	UFUNCTION()
 	void SpawnBouncyBall();

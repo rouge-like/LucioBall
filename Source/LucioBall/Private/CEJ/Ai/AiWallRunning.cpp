@@ -20,7 +20,7 @@ AAiWallRunning::AAiWallRunning()
 	//GetMesh()->SetRelativeScale3D(FVector(47.f));
 	
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(
-		TEXT("SkeletalMesh'/Game/CEJ/Animations/StaySkateboarding.StaySkateboarding'")
+	TEXT("SkeletalMesh'/Game/CEJ/Animations/Stay.Stay'")
 	);
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMatRef(
 		TEXT("Material'/Game/CEJ/Asset/lucio_default_EMr_Mat.lucio_default_EMr_Mat'")
