@@ -390,8 +390,11 @@ void AAiLucioDynamic::ExecuteDefenseBehavior(float DeltaTime)
                 // 공이 가까이 오면 클리어 시도
                 if (DistToBall <= PossessionRadius)
                 {
-                    BallActor->BouncyBallAddImpulse(FVector(0.f, 0.f, 1000.f), this);
-                    CurrentState = ELucioDynamicState::ClearBall;
+                    GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Yellow, "!!!!!");
+
+                    BallActor->CurrentVelocity = FVector::ZeroVector;
+                    BallActor->BouncyBallAddImpulse(FVector(0.f, 0.f, 300.f), this);
+                    CurrentState = ELucioDynamicState::DefendGoal;
                 }
                 break;
             
@@ -554,11 +557,11 @@ void AAiLucioDynamic::KickBallTowards(const FVector& Target, float Impulse)
     const float DistToBall = FVector::Dist(MyLoc, BallLoc);
 
     //boucyball kick
-    BallActor->BouncyBallAddImpulse(FVector(0.f, 0.f, 1000.f)* Impulse, this);
+    BallActor->BouncyBallAddImpulse(FVector(0.f, 0.f, 300.f)* Impulse, this);
     
     if (bDebug)
     {
-        DrawDebugDirectionalArrow(GetWorld(), BallLoc, BallLoc + FVector(0.f, 0.f, 1000.f)* Impulse,
+        DrawDebugDirectionalArrow(GetWorld(), BallLoc, BallLoc + FVector(0.f, 0.f, 300.f)* Impulse,
                                   50.0f, FColor::Red, false, 0.5f, 0, 3.0f);
         
         GEngine->AddOnScreenDebugMessage(
