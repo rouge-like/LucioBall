@@ -44,6 +44,10 @@ private:
 	UPROPERTY(EditAnyWhere)
 	float MaxRange = 2000.f;
 
+	bool bIsPulling = false;
+
+	UPROPERTY(EditAnywhere)
+	float PullInterpSpeed = 5.f;
 
 	void FindBall();
 };
