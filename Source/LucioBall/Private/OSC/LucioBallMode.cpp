@@ -42,11 +42,7 @@ void ALucioBallMode::Tick(float DeltaTime)
 	}
 	else
 	{
-		CurrentTime = 0.0f;
-		if (!bIsGameEnding)
-		{
-			bIsGameEnding = true;
-		}
+		OnGameEnd();
 	}
 
 	if (bIsGameEnding)
@@ -59,6 +55,10 @@ void ALucioBallMode::Tick(float DeltaTime)
 		if (SlowdownTimer >= SlowdownDuration)
 		{
 			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+			
+		}
+		if (SlowdownTimer >= 2.0f)
+		{
 			UGameplayStatics::OpenLevel(GetWorld(), TEXT("LobbyMap"));
 		}
 	}
@@ -75,6 +75,24 @@ void ALucioBallMode::SpawnBouncyBall()
 	if (BouncyBall)
 	{
 		GetWorld()->SpawnActor<ABouncyBall>(BouncyBall, BallSpawnPosition, FRotator::ZeroRotator);
+	}
+}
+
+void ALucioBallMode::OnGameEnd()
+{
+	CurrentTime = 0.0f;
+	if (!bIsGameEnding)
+	{
+		bIsGameEnding = true;
+		
+		if (PlayerScore >= AIScore)
+		{
+			HUD->GetGameUIWidget()->OnVictoryDelegate.Broadcast();
+		}
+		else
+		{
+			HUD->GetGameUIWidget()->OnDefeatDelegate.Broadcast();
+		}
 	}
 }
 
