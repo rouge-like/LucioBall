@@ -2,7 +2,6 @@
 
 
 #include "CEJ/Ai/AiLucio.h"
-#include "CEJ/Ai/AiLucio.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -77,7 +76,7 @@ void AAiLucio::BeginPlay()
 {
     Super::BeginPlay();
 
-    CachedAI = Cast<AAIController>(GetController());  // 아직 없을 수도 있음(=null)
+    CachedAI = Cast<AAIController>(GetController());  
     FindJumpPointOnce();
     FindBallOnce();
     FindGoalOnce();
@@ -302,48 +301,34 @@ void AAiLucio::Tick_FallingFast(float Dt)
 
 void AAiLucio::Tick_BallKick(float Dt)
 {
-    if (!BallActor.IsValid()) FindBallOnce();
-    if (!GoalActor.IsValid()) FindGoalOnce();
-
-    if (!BallActor.IsValid())
-    {
-        // 볼이 없으면 다시 점프포인트 찾기 루프로
-        GotoState(ELucioAIState::SeekJumpPoint);
-        return;
-    }
+    if (!BallActor.IsValid()) { FindBallOnce(); if (!BallActor.IsValid()) { GotoState(ELucioAIState::SeekJumpPoint); return; } }
+    if (!GoalActor.IsValid())  FindGoalOnce();
 
     const FVector Ball = BallActor->GetActorLocation();
-    const FVector Goal = GoalActor.IsValid()
-        ? GoalActor->GetActorLocation()
-        : (Ball + GetActorForwardVector() * 10.f);
+    const FVector Goal = GoalActor.IsValid() ? GoalActor->GetActorLocation()
+                                             : (Ball + GetActorForwardVector() * 100.f);
 
-    FVector Approach, Kick, DirToGoal;
-    ComputeBallApproach(Ball, Goal, Approach, Kick, DirToGoal);
+    // 1) 항상 공을 바짝 추적 (StopOnOverlap=false 권장, 아래 3) 참고)
+    MoveToActorSmart(BallActor.Get(), /*StopRadius*/ 25.f);
 
-    if (bDebug)
+    // 2) 가까우면 무조건 킥 (공이 정지해 있어도 킥함)
+    const float DistToBall = FVector::Dist2D(GetActorLocation(), Ball);
+    if (DistToBall <= KickTriggerDistance)           // e.g. 50~80cm
     {
-        DrawDebugLine(GetWorld(), Ball, Goal, FColor::Green, false, 0.f, 0, 2.f);
-        DrawDebugSphere(GetWorld(), Approach, 18.f, 12, FColor::Cyan, false, 0.f, 0, 1.5f);
-        DrawDebugSphere(GetWorld(), Kick,     18.f, 12, FColor::Green,false, 0.f, 0, 1.5f);
-    }
-
-    const float DistToApproach = FVector::Dist2D(GetActorLocation(), Approach);
-    if (DistToApproach > ApproachTolerance)
-    {
-        MoveToLocationSmart(Approach, AcceptanceRadius);
-    }
-    else
-    {
-        MoveToLocationSmart(Kick, AcceptanceRadius);
-
-        // 볼 근접 시 임펄스(물리 ON 전제)
-        if (FVector::Dist2D(GetActorLocation(), Ball) < 10.f)
+        if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(BallActor->GetRootComponent()))
         {
-            if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(BallActor->GetRootComponent()))
+            if (Prim->IsSimulatingPhysics())
             {
-                if (Prim->IsSimulatingPhysics())
+                const FVector DirToGoal = (Goal - Ball).GetSafeNormal();
+                const float   KickImpulse = 80000.f;  // 필요 시 조절 (쿨타임이 없으니 수치 낮추는 걸 권장)
+                Prim->AddImpulseAtLocation(DirToGoal * KickImpulse, Ball);
+
+                if (bDebug)
                 {
-                    Prim->AddImpulse(DirToGoal * 80000.f); // 맵 스케일에 맞게 조정
+                    DrawDebugDirectionalArrow(GetWorld(), Ball, Ball + DirToGoal * 500.f,
+                                              80.f, FColor::Cyan, false, 0.15f, 0, 6.f);
+                    GEngine->AddOnScreenDebugMessage(3001, 0.f, FColor::Green,
+                        FString::Printf(TEXT("KICK Dist=%.1fcm Imp=%.0f"), DistToBall, KickImpulse));
                 }
             }
         }
@@ -363,7 +348,8 @@ bool AAiLucio::MoveToActorSmart(AActor* Target, float Radius)
     MoveCmdCooldown = MoveCmdInterval;
 
     const EPathFollowingRequestResult::Type Res =
-        AICon->MoveToActor(Target, Radius, /*StopOnOverlap*/ true,
+        AICon->MoveToActor(Target,
+                            Radius, /*StopOnOverlap*/ false,
                            /*UsePathfinding*/ true, /*CanStrafe*/ true,
                            /*FilterClass*/ nullptr, /*AllowPartialPath*/ true);
 
@@ -468,6 +454,105 @@ void AAiLucio::UpdateLocomotionAnim(float Speed)
     {
         GetMesh()->PlayAnimation(Desired, /*bLoop=*/true);
         CurrentAnim = Desired;
+    }
+}
+
+void AAiLucio::FindFieldOnce()
+{
+    if (FieldActor.IsValid()) return;
+
+    TArray<AActor*> Found;
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FieldTag, Found);
+    if (Found.Num() > 0)
+        FieldActor = Found[0];
+}
+
+FVector AAiLucio::GetFieldCenter() const
+{
+    if (FieldActor.IsValid())
+    {
+        FVector Origin, Extent;
+        FieldActor->GetActorBounds(
+            /*bOnlyCollidingComponents*/ true,
+            Origin,
+            Extent);
+        return Origin; // GetActorBounds의 Origin이 바운딩 박스 중앙
+    }
+    // 필드가 없으면 월드 원점 fallback
+    return FVector::ZeroVector;
+}
+
+bool AAiLucio::IsInAttackingHalf(const FVector& Point) const
+{
+    if (!GoalActor.IsValid()) return true; // 골대를 못 찾으면 공격 쪽으로 처리
+    const FVector G = GoalActor->GetActorLocation();
+    const FVector C = GetFieldCenter();
+
+    const FVector Axis = (C - G);
+    const float   Len  = Axis.Size();
+    if (Len < KINDA_SMALL_NUMBER) return true;
+
+    const FVector Dir = Axis / Len;
+    const float tPoint = FVector::DotProduct(Point - G, Dir);    // Goal 기준 진행도
+    const float tHalf  = Len * 0.5f;                             // 절반 지점
+    return tPoint >= tHalf;
+}
+
+void AAiLucio::AttackFSM_TickBall(float Dt)
+{
+    if (!BallActor.IsValid()) FindBallOnce();
+    if (!GoalActor.IsValid()) FindGoalOnce();
+    if (!BallActor.IsValid() || !GoalActor.IsValid())
+    {
+        GotoState(ELucioAIState::SeekJumpPoint);
+        return;
+    }
+
+    const FVector MyLoc = GetActorLocation();
+    const FVector Ball  = BallActor->GetActorLocation();
+    const FVector Goal  = GoalActor->GetActorLocation();
+
+    // ── AI → 골대 벡터 (0이 아니면 유효) ─────────────────────────────
+    const FVector MyToGoal = Goal - MyLoc;
+    const bool bHasGoalDir = !MyToGoal.IsNearlyZero(); // 길이 0 아님?
+
+    // 항상 공을 바짝 따라감 (StopOnOverlap=false 권장)
+    MoveToActorSmart(BallActor.Get(), /*StopRadius*/ 25.f);
+
+    if (!bHasGoalDir) return; // 방향이 없으면 아무 것도 안 함
+
+    // 가까우면 즉시 킥 (공이 안 움직여도 킥)
+    // 필요하면 프로젝트에 맞게 값 조정
+    constexpr float KickTriggerDistanceCm = 70.f; // AI-공 70cm 이내면 킥
+    constexpr float KickImpulseStrength   = 80000.f;
+
+    const float DistToBall = FVector::Dist2D(MyLoc, Ball);
+    if (DistToBall <= KickTriggerDistanceCm)
+    {
+        if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(BallActor->GetRootComponent()))
+        {
+            if (Prim->IsSimulatingPhysics())
+            {
+                // 공을 골 안쪽으로 밀기: 수직 성분 제거(Z=0)로 안정적 밀기
+                FVector DirToGoal = Goal - Ball;
+                DirToGoal.Z = 0.f;
+                if (!DirToGoal.IsNearlyZero())
+                {
+                    DirToGoal = DirToGoal.GetSafeNormal();
+                    Prim->AddImpulseAtLocation(DirToGoal * KickImpulseStrength, Ball);
+
+                    if (bDebug)
+                    {
+                        DrawDebugDirectionalArrow(GetWorld(), Ball, Ball + DirToGoal * 500.f,
+                                                  80.f, FColor::Cyan, false, 0.15f, 0, 6.f);
+                        GEngine->AddOnScreenDebugMessage(
+                            3001, 0.f, FColor::Green,
+                            FString::Printf(TEXT("KICK  Dist=%.1fcm  Imp=%.0f"),
+                                            DistToBall, KickImpulseStrength));
+                    }
+                }
+            }
+        }
     }
 }
 

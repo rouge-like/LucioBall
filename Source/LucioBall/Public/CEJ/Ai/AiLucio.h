@@ -12,6 +12,10 @@
 #include "GameFramework/Character.h"
 #include "AiLucio.generated.h"
 
+class AAIController;
+class UAnimSequence;
+class UMaterialInterface;
+
 UENUM(BlueprintType)
 enum class ELucioAIState : uint8
 {
@@ -19,7 +23,9 @@ enum class ELucioAIState : uint8
 	Jumping,
 	WallRun,
 	FallingFast,
-	BallKick
+	BallKick,
+	HoldCenter,
+	Idle
 };
 
 UCLASS()
@@ -76,6 +82,11 @@ public:
     UPROPERTY(EditAnywhere, Category="Tags")
     FName GoalTag = TEXT("SoccerGoal");
 
+	UPROPERTY(EditAnywhere, Category="Tags")
+	FName FieldTag = TEXT("Soccer_Field_0");
+
+	
+
     UPROPERTY(EditAnywhere, Category="Move")
     float AcceptanceRadius = 0.1f;
 
@@ -128,6 +139,14 @@ public:
 	UAnimSequence* StayAnim= nullptr;
 	void UpdateLocomotionAnim(float Speed);
 
+	// 공에 충분히 가까울 때 킥 트리거
+	UPROPERTY(EditAnywhere, Category="AI|Kick")
+	float KickTriggerDistance = 60.f;     // 공과 AI 거리 (cm)
+
+	// “볼–골” 거리가 이 값 이상이면 슛 발동
+	UPROPERTY(EditAnywhere, Category="AI|Kick")
+	float GoalShootDistance = 1.f;        // 1cm (1m 원하면 100.f)
+
 
 protected:
     // 상태/타깃 핸들
@@ -151,6 +170,28 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Animation")
 	bool bIsPlayingJumpAnim = false;
+
+///////////////Attack 
+	// 찾은 액터들 캐시
+	TWeakObjectPtr<AActor> FieldActor;   // 필드(센터 계산용)
+
+	// 하프라인 로직 파라미터
+	UPROPERTY(EditAnywhere, Category="Soccer|AttackFSM")
+	bool bUseAttackFSM = true;
+
+	UPROPERTY(EditAnywhere, Category="Soccer|AttackFSM")
+	float DefendHoldRadius = 200.f;   // 중앙 대기 시 허용 반경
+
+	// --- 유틸 ---
+	void FindFieldOnce();
+	FVector GetFieldCenter() const;
+
+	// Goal -> FieldCenter 방향 벡터 상에서
+	// Goal과 Center의 중점(= 하프라인) “너머”인지 여부
+	bool IsInAttackingHalf(const FVector& Point) const;
+
+	// Tick_BallKick 필드 분기에서 사용할 헬퍼
+	void AttackFSM_TickBall(float Dt);
 
 	
 };
