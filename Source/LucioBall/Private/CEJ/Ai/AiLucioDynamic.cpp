@@ -236,7 +236,7 @@ bool AAiLucioDynamic::DetermineRole()
     else if (bIsDefender)
     {
         // 수비형 태그 - 항상 수비 모드
-        bIsDefender = true;
+        bIsDefender = false;
     }
     else
     {
@@ -391,10 +391,9 @@ void AAiLucioDynamic::ExecuteDefenseBehavior(float DeltaTime)
                 if (DistToBall <= PossessionRadius)
                 {
                     GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Yellow, "!!!!!");
-
-                    BallActor->CurrentVelocity = FVector::ZeroVector;
+                    
                     BallActor->BouncyBallAddImpulse(FVector(0.f, 0.f, 300.f), this);
-                    CurrentState = ELucioDynamicState::DefendGoal;
+                    CurrentState = ELucioDynamicState::ClearBall;
                 }
                 break;
             
@@ -586,21 +585,19 @@ FVector AAiLucioDynamic::GetBallLandLocation() const
     return GetBallLocation();
 }
 
-// AI가 골을 넣어야 하는 골대 (Y < 0, 'SoccerGoal' 태그)
 FVector AAiLucioDynamic::GetAIGoalLocation() const
 {
-    return OwnGoalActor.IsValid() ? OwnGoalActor->GetActorLocation() : FVector(0, -3000, 0);
+    return OwnGoalActor.IsValid() ? OwnGoalActor->GetActorLocation() : FVector(0, 3000, 0);
 }
 
-// 플레이어가 골을 넣으려는 골대 (Y > 0, AI가 수비해야 함)
 FVector AAiLucioDynamic::GetPlayerGoalLocation() const
 {
-    return OppGoalActor.IsValid() ? OppGoalActor->GetActorLocation() : FVector(0, 3000, 0);
+    return OppGoalActor.IsValid() ? OppGoalActor->GetActorLocation() : FVector(0, -3000, 0);
 }
 
 FVector AAiLucioDynamic::GetDefensePosition() const
 {
-    FVector PlayerGoal = GetPlayerGoalLocation(); // 수비해야 할 골대 (Y > 0)
+    FVector PlayerGoal = GetPlayerGoalLocation(); // 수비해야 할 골대 (Y < 0)
     FVector BallLoc = GetBallLandLocation(); // 착지 예상 지점 사용
     
     FVector DirFromGoal = (BallLoc - PlayerGoal).GetSafeNormal();
@@ -610,7 +607,7 @@ FVector AAiLucioDynamic::GetDefensePosition() const
 FVector AAiLucioDynamic::GetAttackPosition() const
 {
     FVector BallLoc = GetBallLocation();
-    FVector AIGoal = GetAIGoalLocation(); // AI가 넣어야 할 골대 (Y < 0)
+    FVector AIGoal = GetAIGoalLocation(); // AI가 넣어야 할 골대 (Y > 0)
     
     // 공과 AI 골 사이에 위치
     FVector DirToBall = (BallLoc - AIGoal).GetSafeNormal();
