@@ -51,9 +51,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<AActor> LastAttacker;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector CurrentVelocity;
-
 	FVector LandLocation;
 
 	UPROPERTY(EditAnywhere)
@@ -68,6 +65,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector CurrentVelocity;
 	
 	UFUNCTION(BlueprintCallable)
 	void BouncyBallAddImpulse(FVector Impulse, AActor* Attacker);
