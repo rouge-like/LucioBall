@@ -163,7 +163,8 @@ FVector ABouncyBall::CalculateReflectionAndFriction(const FVector& InVelocity, c
 	{
 		return InVelocity;
 	}
-
+	int32 Idx = FMath::RandRange(0, BounceSFXs.Num() - 1);
+	UGameplayStatics::SpawnSoundAtLocation(GetWorld(), BounceSFXs[Idx], GetActorLocation(), FRotator(0, 0, 0), 1, 1, 0, Attenuation);
 	// 반사: 정면 충돌
 	const FVector ReflectedVelocity = InVelocity - 2 * Dot * Hit.ImpactNormal;
 	return ReflectedVelocity * Elasticity;

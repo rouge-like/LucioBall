@@ -27,10 +27,10 @@ public:
 	TObjectPtr<UMaterialInstanceDynamic> Material;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float ElapsedTime = 0.0f;
+	float ElapsedTime = 30.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float Duration = 15.0f;
+	float Duration = 30.0f;
 	
 	void UpdateProgress(float DeltaTime);
 	
