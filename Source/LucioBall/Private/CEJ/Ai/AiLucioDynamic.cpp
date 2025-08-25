@@ -8,7 +8,6 @@
 #include "EngineUtils.h"
 #include "Navigation/PathFollowingComponent.h"
 
-// BouncyBall 헤더 - 경로에 맞게 수정하세요
 #include "OSC/BouncyBall.h"
 
 AAiLucioDynamic::AAiLucioDynamic()
@@ -23,10 +22,10 @@ AAiLucioDynamic::AAiLucioDynamic()
     UCharacterMovementComponent* CharMov = GetCharacterMovement();
     if (CharMov)
     {
-        CharMov->MaxWalkSpeed = 600.0f;
-        CharMov->JumpZVelocity = 800.0f;
-        CharMov->GravityScale = 1.0f;
-        CharMov->AirControl = 0.6f;
+        CharMov->MaxWalkSpeed = 800.0f;
+        CharMov->JumpZVelocity = 700.0f;
+        //CharMov->GravityScale = 1.0f;
+        //CharMov->AirControl = 0.6f;
     }
 
     // 메시 설정
@@ -59,11 +58,11 @@ AAiLucioDynamic::AAiLucioDynamic()
         RoleTextComponent->SetYScale(3.0f);
         RoleTextComponent->SetHorizontalAlignment(EHTA_Center);
         RoleTextComponent->SetVerticalAlignment(EVRTA_TextCenter);
-        RoleTextComponent->SetWorldSize(50.0f);
+        RoleTextComponent->SetWorldSize(30.0f);
         
         // UE5에서 카메라를 항상 바라보도록 설정하는 다른 방법들
         // 옵션 1: 빌보드 효과를 위해 매 프레임 회전 업데이트 (Tick에서 처리)
-        // 또는 옵션 2: 컴포넌트 설정으로 처리
+        // 옵션 2: 컴포넌트 설정으로 처리
         RoleTextComponent->SetGenerateOverlapEvents(false);
     }
 
@@ -81,16 +80,26 @@ void AAiLucioDynamic::BeginPlay()
 {
     Super::BeginPlay();
     
+    //RefreshParamsFromDataTable();
+    
     CachedAI = Cast<AAIController>(GetController());
     EnsureTargets();
     CheckPlayerRole(); // 태그 기반 역할 확인
     UpdateRoleText(); // 역할 텍스트 업데이트
     CurrentState = ELucioDynamicState::Idle;
+
+    if (RoleTextComponent)
+    {
+        RoleTextComponent->SetText(FText::FromString(TEXT("test")));
+        RoleTextComponent->SetTextRenderColor(FColor::Yellow);
+        RoleTextComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
+        UE_LOG(LogTemp, Error, TEXT("TEST: RoleText should be visible now!"));
+    }
     
     FString RoleText = bIsAttacker ? TEXT("ATTACKER") : 
-                      bIsDefender ? TEXT("DEFENDER") : TEXT("DYNAMIC");
+                      bIsDefender ? TEXT("DEFENDER") : TEXT("DYNAMIC"); //DEFENDER
     
-    UE_LOG(LogTemp, Log, TEXT("AI Lucio Dynamic Player %d started as %s"), PlayerID, *RoleText);
+    //UE_LOG(LogTemp, Log, TEXT("AI Lucio Dynamic Player %d started as %s"), PlayerID, *RoleText);
 }
 
 void AAiLucioDynamic::Tick(float DeltaTime)
@@ -135,7 +144,7 @@ void AAiLucioDynamic::EnsureTargets()
             BallActor = Cast<ABouncyBall>(Found[0]);
         }
         
-        // 태그로 못 찾으면 클래스로 찾기
+        // 태그로 못 찾으면 클래스로
         if (!BallActor.IsValid())
         {
             for (TActorIterator<ABouncyBall> It(GetWorld()); It; ++It)
@@ -201,12 +210,12 @@ void AAiLucioDynamic::CheckPlayerRole()
     bIsAttacker = ActorHasTag(AttackerTag);
     bIsDefender = ActorHasTag(DefenderTag);
     
-    // 둘 다 태그가 있는 경우 공격형 우선
+    /*// 둘 다 태그가 있는 경우 공격형 우선
     if (bIsAttacker && bIsDefender)
     {
         bIsDefender = false;
         UE_LOG(LogTemp, Warning, TEXT("Player %d has both Attacker and Defender tags. Using Attacker."), PlayerID);
-    }
+    }*/
     
     UE_LOG(LogTemp, Log, TEXT("Player %d role determined: Attacker=%s, Defender=%s"), 
            PlayerID, bIsAttacker ? TEXT("true") : TEXT("false"), bIsDefender ? TEXT("true") : TEXT("false"));
@@ -227,7 +236,7 @@ bool AAiLucioDynamic::DetermineRole()
     else if (bIsDefender)
     {
         // 수비형 태그 - 항상 수비 모드
-        bIsInAttackMode = false;
+        bIsDefender = true;
     }
     else
     {
@@ -245,9 +254,9 @@ bool AAiLucioDynamic::DetermineRole()
         
         FString ModeText;
         if (bIsAttacker)
-            ModeText = TEXT("FIXED ATTACKER");
+            ModeText = TEXT("ATTACKER");//FIXED ATTACKER
         else if (bIsDefender)
-            ModeText = TEXT("FIXED DEFENDER");
+            ModeText = TEXT("DEFENDER");//FIXED DEFENDER
         else
             ModeText = bIsInAttackMode ? TEXT("DYNAMIC ATTACK") : TEXT("DYNAMIC DEFENSE");
         
@@ -278,76 +287,67 @@ void AAiLucioDynamic::ExecuteAttackBehavior(float DeltaTime)
     
     // 공의 착지 예상 위치 계산
     FVector PredictedBallPos = PredictBallLandingPosition();
-    float BallLandingTime = CalculateBallLandingTime();
     float TimeToReachBall = CalculateTimeToReachTarget(PredictedBallPos);
     
     switch (CurrentState)
     {
-    case ELucioDynamicState::Idle:
-        CurrentState = ELucioDynamicState::SeekBall;
-        break;
-        
-    case ELucioDynamicState::SeekBall:
-    {
-        FVector TargetLocation;
-        bool bUseAdvanced = false;
-        
-        // 공이 공중에 있고 고급 이동이 필요한지 판단
-        if (bUseAdvancedMovement && BallLandingTime > 0.1f)
-        {
-            TargetLocation = PredictedBallPos;
-            bUseAdvanced = ShouldUseAdvancedMovement(PredictedBallPos, BallLandingTime);
-        }
-        else
-        {
-            TargetLocation = BallLoc; // 일반적인 공 추적
-        }
-        
-        // 이동 실행
-        if (bUseAdvanced && bUsingAdvancedMovement)
-        {
-            ExecuteAdvancedMovement(TargetLocation, DeltaTime);
-        }
-        else
-        {
-            MoveToLocation(TargetLocation);
-        }
-        
-        // 공에 도달했는지 확인
-        float CheckDistance = bUsingAdvancedMovement ? PossessionRadius * 1.5f : PossessionRadius;
-        if (FVector::Dist(MyLoc, TargetLocation) <= CheckDistance)
-        {
-            CurrentState = ELucioDynamicState::AttackBall;
-            bUsingAdvancedMovement = false; // 고급 이동 종료
-        }
-        
-        break;
-    }
-    
-    case ELucioDynamicState::AttackBall:
-    {
-        // 공 근처에서 AI 골대(Y < 0)로 킥
-        if (DistToBall <= AttackDistance)
-        {
-            FVector AIGoal = GetAIGoalLocation();
-            KickBallTowards(AIGoal, AttackKickImpulse);
-        }
-        
-        // 공을 계속 추적
-        MoveToLocation(BallLoc);
-        
-        // 공이 멀어지면 다시 추적 상태로
-        if (DistToBall > PossessionRadius * 1.5f)
-        {
+        case ELucioDynamicState::Idle:
             CurrentState = ELucioDynamicState::SeekBall;
+            break;
+            
+        case ELucioDynamicState::SeekBall:
+        {
+            FVector TargetLocation;    
+            //그냥 z 값으로 차기
+            
+            bool bUseAdvanced = true;
+            
+            // 이동 실행
+            if (bUseAdvanced && bUsingAdvancedMovement)
+            {
+                ExecuteAdvancedMovement(TargetLocation, DeltaTime);
+            }
+            else
+            {
+                MoveToLocation(TargetLocation);
+            }
+            
+            // 공에 도달했는지 확인
+            float CheckDistance = bUsingAdvancedMovement ? PossessionRadius * 1.5f : PossessionRadius;
+            if (FVector::Dist(MyLoc, TargetLocation) <= CheckDistance)
+            {
+                CurrentState = ELucioDynamicState::AttackBall;
+                bUsingAdvancedMovement = false; // 고급 이동 종료
+            }
+            
+            break;
         }
-        break;
-    }
-    
-    default:
-        CurrentState = ELucioDynamicState::Idle;
-        break;
-    }
+        
+        case ELucioDynamicState::AttackBall:
+        {
+            // 공 근처에서 AI 골대(Y < 0)로 킥
+            if (DistToBall <= AttackDistance)
+            {
+                FVector AIGoal = GetAIGoalLocation();
+                KickBallTowards(AIGoal, AttackKickImpulse);
+            }
+            
+            // 공을 계속 추적
+            MoveToLocation(BallLoc);
+            
+            // 공이 멀어지면 다시 추적 상태로
+            if (DistToBall > PossessionRadius * 1.5f)
+            {
+                CurrentState = ELucioDynamicState::SeekBall;
+            }
+            break;
+        }
+        
+        default:
+            CurrentState = ELucioDynamicState::Idle;
+            break;
+        
+    }//switch
 }
 
 void AAiLucioDynamic::ExecuteDefenseBehavior(float DeltaTime)
@@ -358,45 +358,49 @@ void AAiLucioDynamic::ExecuteDefenseBehavior(float DeltaTime)
     
     switch (CurrentState)
     {
-    case ELucioDynamicState::Idle:
-        CurrentState = ELucioDynamicState::DefendGoal;
-        break;
-        
-    case ELucioDynamicState::DefendGoal:
-    {
-        // 플레이어 골대(Y > 0) 수비 포지션으로 이동
-        FVector DefensePos = GetDefensePosition();
-        MoveToLocation(DefensePos);
-        
-        // 공이 가까이 오면 클리어 시도
-        if (DistToBall <= PossessionRadius)
-        {
+        case ELucioDynamicState::Idle:
             CurrentState = ELucioDynamicState::ClearBall;
-        }
-        break;
-    }
-    
-    case ELucioDynamicState::ClearBall:
-    {
-        // 공을 AI 골대 쪽으로 강하게 걷어내기
-        if (DistToBall <= AttackDistance)
+            break;
+            
+        case ELucioDynamicState::DefendGoal:
         {
-            FVector AIGoal = GetAIGoalLocation();
-            KickBallTowards(AIGoal, DefenseKickImpulse);
+                // 공을 AI 골대 쪽으로 강하게 걷어내기
+                if (DistToBall <= AttackDistance)
+                {
+                    /*FVector KickDir = BallLoc.GetSafeNormal();
+                    BallActor->BouncyBallAddImpulse( KickDir* 2000.f, this);*/
+                    FVector AIGoal = GetAIGoalLocation();
+                    KickBallTowards(AIGoal, DefenseKickImpulse);
+                }
+            
+                // 공이 멀어지면 다시 수비 포지션으로
+                if (DistToBall > PossessionRadius * 1.5f)
+                {
+                    CurrentState = ELucioDynamicState::DefendGoal;
+                }
+                break;
         }
         
-        // 공이 멀어지면 다시 수비 포지션으로
-        if (DistToBall > PossessionRadius * 1.5f)
+        case ELucioDynamicState::ClearBall:
         {
-            CurrentState = ELucioDynamicState::DefendGoal;
+                // 플레이어 골대(Y > 0) 수비 포지션으로 이동
+                FVector DefensePos = GetDefensePosition();
+                MoveToLocation(DefensePos);
+            
+                // 공이 가까이 오면 클리어 시도
+                if (DistToBall <= PossessionRadius)
+                {
+                    BallActor->BouncyBallAddImpulse(FVector(0.f, 0.f, 1000.f), this);
+                    CurrentState = ELucioDynamicState::ClearBall;
+                }
+                break;
+            
         }
-        break;
-    }
-    
-    default:
-        CurrentState = ELucioDynamicState::Idle;
-        break;
-    }
+        
+        default:
+            CurrentState = ELucioDynamicState::Idle;
+            break;
+    }//switch
 }
 
 void AAiLucioDynamic::MoveToLocation(const FVector& Location)
@@ -411,7 +415,7 @@ void AAiLucioDynamic::MoveToLocation(const FVector& Location)
     
     if (bDebug && Result.Code != EPathFollowingRequestResult::RequestSuccessful)
     {
-        UE_LOG(LogTemp, Warning, TEXT("MoveTo failed for Player %d, Result: %d"), PlayerID, (int32)Result.Code);
+        //UE_LOG(LogTemp, Warning, TEXT("MoveTo failed for Player %d, Result: %d"), PlayerID, (int32)Result.Code);
     }
 }
 
@@ -481,48 +485,7 @@ void AAiLucioDynamic::ExecuteAdvancedMovement(const FVector& TargetLocation, flo
             FString::Printf(TEXT("Player %d ADVANCED MOVE! Speed: %.0f"), PlayerID, CurrentAdvancedSpeed));
     }
     
-    // 목표 근처 도달 시 고급 이동 종료
-    if (FVector::Dist(MyLoc, TargetLocation) <= AcceptanceRadius * 2.0f)
-    {
-        bUsingAdvancedMovement = false;
-        CharMov->MaxWalkSpeed = 600.0f; // 원래 속도로 복원
-        CurrentAdvancedSpeed = 0.0f;
-    }
-}
-
-float AAiLucioDynamic::CalculateBallLandingTime()
-{
-    if (!BallActor.IsValid()) return 0.0f;
-    
-    FVector BallVelocity = BallActor->GetBouncyBallVelocity();
-    FVector BallLocation = GetBallLocation();
-    
-    // 공이 떨어지고 있는지 확인 (Z 속도가 음수)
-    if (BallVelocity.Z >= 0.0f) return 0.0f;
-    
-    // 간단한 포물선 운동 계산으로 착지 시간 예측
-    // h = h₀ + v₀t - 0.5*g*t²
-    // 지면(Z=0)에 닿을 때까지의 시간 계산
-    float Gravity = GetWorld()->GetGravityZ() * -1.0f; // 중력을 양수로
-    float InitialHeight = BallLocation.Z;
-    float InitialVelocityZ = BallVelocity.Z * -1.0f; // 음수를 양수로 변환
-    
-    if (InitialHeight <= 0.0f) return 0.0f;
-    
-    // 이차 방정식 해법: -0.5*g*t² + v₀*t + h₀ = 0
-    float a = -0.5f * Gravity;
-    float b = InitialVelocityZ;
-    float c = InitialHeight;
-    
-    float discriminant = b*b - 4*a*c;
-    if (discriminant < 0.0f) return 0.0f;
-    
-    float t1 = (-b + FMath::Sqrt(discriminant)) / (2*a);
-    float t2 = (-b - FMath::Sqrt(discriminant)) / (2*a);
-    
-    // 양수인 시간을 선택
-    float landingTime = (t1 > 0.0f) ? t1 : t2;
-    return FMath::Max(0.0f, landingTime);
+   
 }
 
 float AAiLucioDynamic::CalculateTimeToReachTarget(const FVector& TargetLocation)
@@ -589,27 +552,19 @@ void AAiLucioDynamic::KickBallTowards(const FVector& Target, float Impulse)
     const FVector BallLoc = GetBallLocation();
     const FVector MyLoc = GetActorLocation();
     const float DistToBall = FVector::Dist(MyLoc, BallLoc);
-    
-    // 공과 충분히 가까울 때만 킥
-    if (DistToBall > AttackDistance) return;
-    
-    UPrimitiveComponent* BallPrim = Cast<UPrimitiveComponent>(BallActor->GetRootComponent());
-    if (!BallPrim || !BallPrim->IsSimulatingPhysics()) return;
-    
-    FVector KickDir = (Target - BallLoc).GetSafeNormal();
-    KickDir.Z = 0.0f; // 수평으로만 킥
-    
-    BallPrim->AddImpulseAtLocation(KickDir * Impulse, BallLoc);
+
+    //boucyball kick
+    BallActor->BouncyBallAddImpulse(FVector(0.f, 0.f, 1000.f)* Impulse, this);
     
     if (bDebug)
     {
-        DrawDebugDirectionalArrow(GetWorld(), BallLoc, BallLoc + KickDir * 500.0f,
+        DrawDebugDirectionalArrow(GetWorld(), BallLoc, BallLoc + FVector(0.f, 0.f, 1000.f)* Impulse,
                                   50.0f, FColor::Red, false, 0.5f, 0, 3.0f);
         
         GEngine->AddOnScreenDebugMessage(
             PlayerID + 100, 0.5f, FColor::Yellow,
             FString::Printf(TEXT("Player %d KICK! Mode: %s, Target: %s, Impulse: %.0f"),
-                          PlayerID, bIsInAttackMode ? TEXT("ATTACK") : TEXT("DEFENSE"),
+                          PlayerID, bIsInAttackMode ? TEXT("At") : TEXT("De"), //공격 : 수비 //ATTACK DEFENSE
                           bIsInAttackMode ? TEXT("AI Goal(Y<0)") : TEXT("AI Goal(Y<0)"), Impulse));
     }
 }
@@ -638,17 +593,6 @@ FVector AAiLucioDynamic::GetAIGoalLocation() const
 FVector AAiLucioDynamic::GetPlayerGoalLocation() const
 {
     return OppGoalActor.IsValid() ? OppGoalActor->GetActorLocation() : FVector(0, 3000, 0);
-}
-
-// 이전 함수들과의 호환성 유지
-FVector AAiLucioDynamic::GetOwnGoalLocation() const
-{
-    return GetAIGoalLocation();
-}
-
-FVector AAiLucioDynamic::GetOppGoalLocation() const
-{
-    return GetPlayerGoalLocation();
 }
 
 FVector AAiLucioDynamic::GetDefensePosition() const
@@ -698,12 +642,12 @@ void AAiLucioDynamic::UpdateRoleText()
     {
         if (bUsingAdvancedMovement)
         {
-            RoleString = TEXT("공격(가속)");
+            RoleString = TEXT("ATTACK"); //ATTACK(Speed)
             TextColor = FColor::Purple;
         }
         else
         {
-            RoleString = bIsInAttackMode ? TEXT("공격") : TEXT("공격(대기)");
+            RoleString = bIsInAttackMode ? TEXT("ATTACK") : TEXT("Wait"); //ATTACK
             TextColor = FColor::Red;
         }
     }
@@ -711,12 +655,12 @@ void AAiLucioDynamic::UpdateRoleText()
     {
         if (bUsingAdvancedMovement)
         {
-            RoleString = TEXT("수비(가속)");
+            RoleString = TEXT("Defender");//Defender 가속
             TextColor = FColor::Purple;
         }
         else
         {
-            RoleString = bIsInAttackMode ? TEXT("수비(진출)") : TEXT("수비");
+            RoleString = bIsInAttackMode ? TEXT("Defender") : TEXT("Defender"); //Defender 진출 : Defender
             TextColor = FColor::Blue;
         }
     }
@@ -724,12 +668,12 @@ void AAiLucioDynamic::UpdateRoleText()
     {
         if (bUsingAdvancedMovement)
         {
-            RoleString = TEXT("가속모드");
+            RoleString = TEXT("SpeedMode");//가속모드
             TextColor = FColor::Purple;
         }
         else
         {
-            RoleString = bIsInAttackMode ? TEXT("공격모드") : TEXT("수비모드");
+            RoleString = bIsInAttackMode ? TEXT("ATTACKmode") : TEXT("Defendermode");//수비모드
             TextColor = bIsInAttackMode ? FColor::Orange : FColor::Cyan;
         }
     }
@@ -819,14 +763,12 @@ void AAiLucioDynamic::DrawDebugInfo() const
         else
             ModeText = FString::Printf(TEXT("DYNAMIC (%s)"), *StateText);
         
-        // 추가 정보 표시
-        float BallLandingTime = const_cast<AAiLucioDynamic*>(this)->CalculateBallLandingTime();
         float TimeToReach = const_cast<AAiLucioDynamic*>(this)->CalculateTimeToReachTarget(
             const_cast<AAiLucioDynamic*>(this)->PredictBallLandingPosition());
         
         FString DebugText = FString::Printf(
             TEXT("Player %d: %s | State: %d | Ball Land T: %.1fs | Reach T: %.1fs | Speed: %.0f"),
-            PlayerID, *ModeText, (int32)CurrentState, BallLandingTime, TimeToReach, 
+            PlayerID, *ModeText, (int32)CurrentState, TimeToReach, 
             bUsingAdvancedMovement ? CurrentAdvancedSpeed : 600.0f);
             
         GEngine->AddOnScreenDebugMessage(
