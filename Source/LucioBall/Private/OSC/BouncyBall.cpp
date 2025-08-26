@@ -215,3 +215,9 @@ void ABouncyBall::BouncyBallAddImpulse(FVector Impulse, AActor* Attacker)
 	CurrentVelocity += Impulse;
 	LastAttacker = Attacker;
 }
+
+void ABouncyBall::BouncyBallSetVelocity(FVector Impulse, AActor* Attacker)
+{
+	CurrentVelocity = Impulse;
+	LastAttacker = Attacker;
+}
