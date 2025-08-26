@@ -39,7 +39,7 @@ private:
 	float CoolTime = 10.f;
 
 	UPROPERTY(EditAnyWhere)
-	float MinRange = 1000.f;
+	float MinRange = 200.f;
 	
 	UPROPERTY(EditAnyWhere)
 	float MaxRange = 2000.f;
@@ -48,6 +48,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float PullInterpSpeed = 5.f;
+
+	FVector PullStartLocation;
+	
+	float Alpha;
 
 	void FindBall();
 };

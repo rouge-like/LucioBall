@@ -40,7 +40,7 @@ void UMagneticComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	
 	// BallActor가 유효하지 않은 경우 (예: 아직 찾지 못했거나, 파괴된 경우) 다시 공을 찾습니다.
 	if (!BallActor) FindBall();
-
+	if (!BallActor) return;
 
 	// 경과 시간이 쿨타임보다 크거나 같을 때 자기장 효과를 발동합니다.
 	if (ElapsedTime >= CoolTime)
@@ -59,29 +59,32 @@ void UMagneticComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 				bIsPulling = true;
 				BallActor->BouncyBallSetVelocity(FVector::ZeroVector, OwnerActor);
 				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, "UseMagnetic");
+				PullStartLocation = BallActor->GetActorLocation();
+				Alpha = 0;
 			}
 		}
 	}
 
-	// bIsPulling이 true일 때 공을 끌어당기는 로직을 실행합니다.
+	// bIsPulling이 true일 때 공을 끌어당기는 로직을 실행
 	if(bIsPulling)
 	{
+		// 목표 위치는 소유자 위치에서 공 방향으로 120.0f 떨어진 지점
 		FVector OwnerLocation = GetOwner()->GetActorLocation();
-		FVector BallLocation = BallActor->GetActorLocation();
+		FVector TargetLocation = OwnerLocation + (PullStartLocation - OwnerLocation).GetSafeNormal() * 120.0f;
+
+		Alpha += DeltaTime * 2.0f;
+		Alpha = FMath::Clamp(Alpha, 0, 1);
 		
-		// 목표 위치는 소유자 위치에서 공 방향으로 120.0f 떨어진 지점입니다.
-		FVector DirectionToBall = (BallLocation - OwnerLocation).GetSafeNormal();
-		FVector TargetLocation = OwnerLocation + DirectionToBall * 120.0f;
+		// 보간 (EaseInOut 커브 적용)
+		float EasedAlpha = FMath::InterpEaseOut(0.f, 1.f, Alpha, 2.0f); // 마지막 인자는 커브 강도
+		FVector NewLocation = FMath::Lerp(PullStartLocation, TargetLocation, EasedAlpha);
 
-		// 현재 위치에서 목표 위치로 부드럽게 이동시킵니다.
-		FVector NewBallLocation = FMath::VInterpTo(BallLocation, TargetLocation, DeltaTime, PullInterpSpeed);
-		BallActor->SetActorLocation(NewBallLocation);
+		BallActor->SetActorLocation(NewLocation);
 
-		// 목표 위치에 거의 도달하면 끌어당기는 것을 멈춥니다.
-		if (FVector::Dist(NewBallLocation, TargetLocation) < 1.0f)
+		if (Alpha >= 1.0f)
 		{
 			bIsPulling = false;
-			ElapsedTime = 0; // 쿨타임 리셋
+			ElapsedTime = 0.0f;
 		}
 	}
 }
