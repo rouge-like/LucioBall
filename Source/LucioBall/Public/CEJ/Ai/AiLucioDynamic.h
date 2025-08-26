@@ -77,22 +77,104 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior Settings")
     float DefenseKickImpulse = 2500.0f;
 
-    // ========== 고급 이동 설정 ==========
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Advanced Movement")
-    float WallRunAcceleration = 200.0f; // 벽달리기 가속도
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Advanced Movement")
-    float DiveAcceleration = 200.0f; // 급강하 가속도
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Advanced Movement")
-    float MaxAdvancedSpeed = 1500.0f; // 최대 속도
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Advanced Movement")
-    float InterceptThreshold = 2.0f; // 공을 가로챌 수 여유분 (초)
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Advanced Movement")
-    bool bUseAdvancedMovement = true; // 고급 이동 사용 여부
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float BaseMovementSpeed = 800.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float BaseJumpPower = 700.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float WallRunSpeedMultiplier = 1.3f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float ESkillSpeedMultiplier = 1.6f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float UltimateSpeedMultiplier = 2.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float UltimateJumpMultiplier = 1.5f;
+    
+    // === 공격 관련 스탯 ===
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float BasicAttackForce = 1000.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float BasicAttackRange = 80.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float BasicAttackCooldown = 0.5f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float SkillAttackForce = 2000.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float SkillAttackRange = 150.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float SkillAttackCooldown = 1.0f;
+    
+    // === 스킬 쿨타임 및 지속시간 ===
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skills")
+    float ESkillCooldown = 6.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skills")
+    float ESkillDuration = 3.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skills")
+    float UltimateCooldown = 30.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skills")
+    float UltimateDuration = 8.0f;
+    
+    // === 스킬 상태 변수들 ===
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
+    bool bESkillActive = false;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
+    bool bUltimateActive = false;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
+    float ESkillEndTime = 0.0f;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
+    float UltimateEndTime = 0.0f;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
+    float LastESkillUse = 0.0f;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
+    float LastUltimateUse = 0.0f;
+    
+    // 점프 관련 변수들
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    class UAnimSequence* JumpAnim;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
+    bool bIsPlayingJumpAnim = false;
+    
+    // 타이머 핸들
+    FTimerHandle JumpAnimResetTimer;
+    
+    // 물리 계산을 위한 변수들
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
+    float RunStartTime = 0.0f;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
+    float JumpStartTime = 0.0f;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
+    float InitialRunSpeed = 0.0f;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
+    float InitialJumpVelocity = 0.0f;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
+    bool bIsRunning = false;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
+    bool bIsJumping = false;
+    
     // ========== 애니메이션 설정 ==========
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
     UAnimSequence* MoveAnim;
@@ -100,6 +182,7 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = "Animation")
     bool bIsPlayingMoveAnim = false;
 
+    
     // ========== UI 설정 ==========
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
     UTextRenderComponent* RoleTextComponent;
@@ -109,6 +192,15 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
     float TextHeightOffset = 150.0f;
+
+    // === GetLandLocation 추적 시스템 ===
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BallTracking")
+    FVector PreviousLandLocation = FVector::ZeroVector;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BallTracking")
+    bool bIsTrackingLandLocation = false;
+    
+
 
 private:
     // ========== 캐시된 참조 ==========
@@ -168,12 +260,53 @@ private:
     FVector GetDefensePosition() const;
     FVector GetAttackPosition() const;
 
-    bool IsBallNearby(float Distance = 0.0f) const;
-    bool IsBallInNegativeY() const;
+    //bool IsBallNearby(float Distance = 0.0f) const;
+    bool IsBallNearby(float Threshold) const;
+    bool IsBallClose() const;
 
     void DrawDebugInfo() const;
 
 public:
+
+    UFUNCTION(BlueprintCallable, Category = "BallTracking")
+    void CheckAndRespondToLandLocationChange();
+    
+    UFUNCTION(BlueprintCallable, Category = "BallTracking")
+    void RespondToLandLocationChange(const FVector& NewLandLocation);
+    
+    // === 스킬 관련 함수들 ===
+    UFUNCTION(BlueprintCallable, Category = "Skills")
+    void UpdateSkillStates();
+    
+    UFUNCTION(BlueprintCallable, Category = "Skills")
+    void OptimizeSpeedForBallChase();
+    
+    UFUNCTION(BlueprintCallable, Category = "Skills")
+    bool CanUseESkill() const;
+    
+    UFUNCTION(BlueprintCallable, Category = "Skills")
+    bool CanUseUltimate() const;
+    
+    UFUNCTION(BlueprintCallable, Category = "Skills")
+    void UseESkill();
+    
+    UFUNCTION(BlueprintCallable, Category = "Skills")
+    void UseUltimate();
+    
+    // === 이동 관련 함수들 ===
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void MoveToLocationWithMaxSpeed(const FVector& Location);
+    
+    // 점프 관련 함수들
+    UFUNCTION()
+    void HandleJumpBehavior();
+    
+    UFUNCTION()
+    void ResetJumpAnimFlag();
+    
+    // 물리 계산 함수
+    UFUNCTION()
+    void CalculateAndDisplayPhysics(float DeltaTime);
 
     UFUNCTION(BlueprintCallable, Category = "AI Info")
     bool IsInAttackMode() const { return bIsInAttackMode; }
@@ -183,9 +316,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "AI Info")
     FVector GetCurrentBallLocation() const { return GetBallLocation(); }
-
-    UFUNCTION(BlueprintCallable, Category = "AI Info")
-    bool IsBallClose() const { return IsBallNearby(); }
 
     UFUNCTION(BlueprintCallable, Category = "AI Info")
     bool IsAttacker() const { return bIsAttacker; }
@@ -228,6 +358,7 @@ public:
         }
     }
 
+    
     /*
     UPROPERTY(EditDefaultsOnly, Category="AI|Data")
     UDataTable* DT_AiLucio;
@@ -243,6 +374,5 @@ public:
 
     // 킥 임펄스 가져오기(스킬이 켜져있으면 그 값)
     float GetKickImpulseForCurrentState(float DefaultImpulse) const;
-    */
-    
+    */      
 };
