@@ -2,6 +2,8 @@
 
 
 #include "OSC/LucioBallMode.h"
+
+#include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "OSC/BouncyBall.h"
 #include "OSC/UI/GameHUD.h"
@@ -57,7 +59,7 @@ void ALucioBallMode::Tick(float DeltaTime)
 			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
 			
 		}
-		if (SlowdownTimer >= 2.0f)
+		if (SlowdownTimer >= EndGameTimer)
 		{
 			UGameplayStatics::OpenLevel(GetWorld(), TEXT("LobbyMap"));
 		}
@@ -75,6 +77,18 @@ void ALucioBallMode::SpawnBouncyBall()
 	if (BouncyBall)
 	{
 		GetWorld()->SpawnActor<ABouncyBall>(BouncyBall, BallSpawnPosition, FRotator::ZeroRotator);
+
+		// APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+		// if (PlayerController)
+		// {
+		// 	APawn* Player = PlayerController->GetPawn();
+		// 	AActor* PlayerStart = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
+		// 	if (Player)
+		// 	{
+		// 		Player->SetActorLocation(PlayerStart->GetActorLocation());
+		// 		Player->SetActorRotation(PlayerStart->GetActorRotation());
+		// 	}
+		// }
 	}
 }
 
@@ -88,10 +102,12 @@ void ALucioBallMode::OnGameEnd()
 		if (PlayerScore >= AIScore)
 		{
 			HUD->GetGameUIWidget()->OnVictoryDelegate.Broadcast();
+			UGameplayStatics::PlaySound2D(GetWorld(), VictorySFX);
 		}
 		else
 		{
 			HUD->GetGameUIWidget()->OnDefeatDelegate.Broadcast();
+			UGameplayStatics::PlaySound2D(GetWorld(), DefeatSFX);
 		}
 	}
 }
