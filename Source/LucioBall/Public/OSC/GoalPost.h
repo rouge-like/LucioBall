@@ -47,4 +47,11 @@ private:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundBase> GoalSFX;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundBase> CrowdSFX;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundAttenuation> Attenuation;
 };

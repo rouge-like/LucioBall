@@ -52,7 +52,11 @@ protected:
 	TObjectPtr<AActor> LastAttacker;
 
 	FVector LandLocation;
-	
+
+	UPROPERTY(EditAnywhere)
+	TArray<TObjectPtr<USoundBase>> BounceSFXs;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundAttenuation> Attenuation;
 	UFUNCTION()
 	void OnBouncyBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 

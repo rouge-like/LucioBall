@@ -66,7 +66,9 @@ void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		AActor* Attacker = Ball->GetLastAttacker();
 		AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(GetWorld());
 		ALucioBallMode* LucioBallMode = Cast<ALucioBallMode>(GameModeBase);
-		
+
+		UGameplayStatics::SpawnSoundAtLocation(GetWorld(), GoalSFX, GetActorLocation(), FRotator(0, 0, 0), 1, 1, 0, Attenuation);
+		UGameplayStatics::SpawnSoundAtLocation(GetWorld(), CrowdSFX, GetActorLocation(), FRotator(0,0,0),0.5f);		
 		if (Attacker)
 		{
 			bool IsPlayer = IsActorPlayer(Attacker);

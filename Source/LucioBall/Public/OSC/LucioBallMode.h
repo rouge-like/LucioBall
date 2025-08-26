@@ -27,6 +27,8 @@ private:
 	bool bIsGameEnding = false;
 	float SlowdownTimer = 0.0f;
 	const float SlowdownDuration = 1.0f;
+	UPROPERTY(EditDefaultsOnly)
+	float EndGameTimer = 2.3f;
 	
 	UFUNCTION()
 	void SpawnBouncyBall();
@@ -38,6 +40,12 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly)
 	float Time = 240;
+
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* VictorySFX;
+
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* DefeatSFX;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "A_Mode")
 	TSubclassOf<ABouncyBall> BouncyBall;
