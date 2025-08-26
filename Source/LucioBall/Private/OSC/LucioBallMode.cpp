@@ -101,12 +101,12 @@ void ALucioBallMode::OnGameEnd()
 		
 		if (PlayerScore >= AIScore)
 		{
-			HUD->GetGameUIWidget()->OnVictoryDelegate.Broadcast();
+			HUD->GetGameUIWidget()->OnVictory();
 			UGameplayStatics::PlaySound2D(GetWorld(), VictorySFX);
 		}
 		else
 		{
-			HUD->GetGameUIWidget()->OnDefeatDelegate.Broadcast();
+			HUD->GetGameUIWidget()->OnDefeat();
 			UGameplayStatics::PlaySound2D(GetWorld(), DefeatSFX);
 		}
 	}

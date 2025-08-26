@@ -24,7 +24,8 @@ public class LucioBall : ModuleRules
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { 
-			"Niagara"
+			"Niagara",
+			"MediaAssets"
 		});
 		
 		// Uncomment if you are using Slate UI

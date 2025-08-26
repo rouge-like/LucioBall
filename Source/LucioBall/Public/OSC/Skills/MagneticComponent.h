@@ -7,6 +7,7 @@
 #include "MagneticComponent.generated.h"
 
 
+class UNiagaraSystem;
 class ABouncyBall;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class LUCIOBALL_API UMagneticComponent : public UActorComponent
@@ -25,6 +26,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TObjectPtr<UNiagaraSystem> SkillVFX;
 private:
 	UPROPERTY()
 	TObjectPtr<ABouncyBall> BallActor;

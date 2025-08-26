@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameUIWidget.generated.h"
 
+class UEndGameWidget;
 /**
  * 
  */
@@ -15,21 +16,14 @@ class UTimerWidget;
 class UTextWidget;
 class USkillWidget;
 class UUltGaugeWidget;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVictory);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDefeat);
-
 UCLASS()
 class LUCIOBALL_API UGameUIWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintAssignable)
-	FOnVictory OnVictoryDelegate;
-	
-	UPROPERTY(BlueprintAssignable)
-	FOnDefeat OnDefeatDelegate;
+	void OnVictory();
+	void OnDefeat();
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UScoreWidget> ScoreWidget;
@@ -49,6 +43,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<USkillWidget> Skill1;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UEndGameWidget> EndGame;
+	
 	void UpdatePlayerScore(int32 NewScore);
 	void UpdateOtherScore(int32 NewScore);
 	void UpdateTimer(float NewTime);

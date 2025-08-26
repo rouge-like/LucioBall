@@ -5,6 +5,7 @@
 #include "OSC/BouncyBall.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "NiagaraFunctionLibrary.h"
 
 // 이 컴포넌트는 주변의 공(BouncyBall)을 끌어당기는 자기장 효과를 구현합니다.
 // 특정 범위 내에 있는 공을 소유자(Owner) 방향으로 끌어당기는 힘을 주기적으로 적용합니다.
@@ -58,9 +59,13 @@ void UMagneticComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			{
 				bIsPulling = true;
 				BallActor->BouncyBallSetVelocity(FVector::ZeroVector, OwnerActor);
-				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, "UseMagnetic");
+				//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, "UseMagnetic");
 				PullStartLocation = BallActor->GetActorLocation();
 				Alpha = 0;
+				if (SkillVFX)
+				{
+					UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,SkillVFX,GetOwner()->GetActorLocation(), FRotator::ZeroRotator, FVector(3.0f),true,true);
+				}
 			}
 		}
 	}

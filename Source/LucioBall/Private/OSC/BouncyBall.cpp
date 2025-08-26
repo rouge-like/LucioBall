@@ -3,7 +3,6 @@
 
 #include "OSC/BouncyBall.h"
 #include "Components/SphereComponent.h"
-#include "Components/SplineComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
@@ -89,7 +88,7 @@ void ABouncyBall::Tick(float DeltaTime)
 		else
 			CurrentVelocity -= FrictionDirection * Friction * DeltaTime;
 
-		DrawDebugDirectionalArrow(GetWorld(), Start - FVector(0.f, 0.f, Radius), GetActorLocation() - FVector(0.f, 0.f, Radius) - FrictionDirection * Friction * DeltaTime, 100, FColor::Yellow, 0, 1.0f, 0, 3.f);
+		// DrawDebugDirectionalArrow(GetWorld(), Start - FVector(0.f, 0.f, Radius), GetActorLocation() - FVector(0.f, 0.f, Radius) - FrictionDirection * Friction * DeltaTime, 100, FColor::Yellow, 0, 1.0f, 0, 3.f);
 	}
 
 	// 2. 이동 (충돌 반응은 OnBouncyBallHit에서 처리)
@@ -132,6 +131,7 @@ void ABouncyBall::Tick(float DeltaTime)
 	GroundChecker->SetVisibility(!bIsOnGround);
 	
 	// 이차 방정식의 계수: at^2 + bt + c = 0
+	
 	float a = 0.5f * GravityZ;
 	float b = CurrentVelocity.Z;
 	float c = Height;
@@ -149,7 +149,7 @@ void ABouncyBall::Tick(float DeltaTime)
 			// 착지 위치 계산
 			LandLocation = Start + FVector(CurrentVelocity.X, CurrentVelocity.Y, 0) * TimeToLand;
 			LandLocation.Z = Hit.ImpactPoint.Z;
-			DrawDebugDirectionalArrow(GetWorld(), LandLocation, LandLocation + Hit.ImpactNormal * 100, 100, FColor::Red, false, 1.0f, 3.f);
+			// DrawDebugDirectionalArrow(GetWorld(), LandLocation, LandLocation + Hit.ImpactNormal * 100, 100, FColor::Red, false, 1.0f, 3.f);
 		}
 	}
 }
