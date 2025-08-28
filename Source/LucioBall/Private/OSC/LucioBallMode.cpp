@@ -3,6 +3,7 @@
 
 #include "OSC/LucioBallMode.h"
 
+#include "CEJ/Ai/AiLucioDynamic.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "OSC/BouncyBall.h"
@@ -189,4 +190,18 @@ void ALucioBallMode::InitGame(const FString& MapName, const FString& Options, FS
 
 	FString Team = UGameplayStatics::ParseOption(Options, TEXT("mode"));
 	UE_LOG(LogTemp, Warning, TEXT("Mode : %s"), *Team);
+
+	if (Team == TEXT("1vs2"))
+	{
+		AAiLucioDynamic* AI1 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[0], FRotator(0, 90, 0));
+		AI1->Tags.Add(TEXT("Defender"));
+		
+		AAiLucioDynamic* AI2 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[1], FRotator(0, 90, 0));
+		AI2->Tags.Add(TEXT("Attacker"));
+	}
+	else
+	{
+		AAiLucioDynamic* AI2 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[1], FRotator(0, 90, 0));
+		AI2->Tags.Add(TEXT("Defender"));
+	}
 }

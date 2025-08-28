@@ -13,5 +13,11 @@ UCLASS()
 class LUCIOBALL_API ULobbyUIWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+public:
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> OnPlayAnimation;
+
+	UFUNCTION(BlueprintCallable)
+	void PlayOnPlayAnimation();
 };

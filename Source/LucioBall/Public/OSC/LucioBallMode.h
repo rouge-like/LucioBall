@@ -7,6 +7,7 @@
 #include "LucioBallMode.generated.h"
 
 
+class AAiLucioDynamic;
 class ABouncyBall;
 class AGameHUD;
 UCLASS()
@@ -52,11 +53,18 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "A_Mode")
 	FVector BallSpawnPosition;
+
+	UPROPERTY(EditDefaultsOnly, Category = "A_Mode")
+	TSubclassOf<AAiLucioDynamic> LucioAIFactory;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "A_Mode")
+	TArray<FVector> SpawnPoints;
 	
 	UFUNCTION(BlueprintCallable, Category = "A_Mode")
 	void SetGoalScore(bool IsPlayerTeam, bool IsOwnGoal, FString AttackerName);
 	
 	void SetGoalScore(bool IsPlayerTeam);
+	
 
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void BeginPlay() override;

@@ -58,7 +58,7 @@ void UMagneticComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			if (!bIsPulling)
 			{
 				bIsPulling = true;
-				BallActor->BouncyBallSetVelocity(FVector::ZeroVector, OwnerActor);
+				BallActor->SetBouncyBallVelocity(FVector::ZeroVector, OwnerActor);
 				//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, "UseMagnetic");
 				PullStartLocation = BallActor->GetActorLocation();
 				Alpha = 0;

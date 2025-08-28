@@ -22,7 +22,8 @@ public:
 protected:
     virtual void NativeConstruct() override;
     virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-
+    virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+    
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UButton> MainButton;
 
@@ -31,7 +32,10 @@ protected:
 
     UPROPERTY(Transient, meta = (BindWidgetAnim))
     UWidgetAnimation* MouseOverAnimation;
-
+    
+    UPROPERTY(Transient, meta = (BindWidgetAnim))
+    UWidgetAnimation* MouseOutAnimation;
+    
     UPROPERTY(Transient, meta = (BindWidgetAnim))
     UWidgetAnimation* MouseClickAnimation;
 

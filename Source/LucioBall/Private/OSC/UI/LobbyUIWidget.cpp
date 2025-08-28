@@ -3,3 +3,8 @@
 
 #include "OSC/UI/LobbyUIWidget.h"
 
+void ULobbyUIWidget::PlayOnPlayAnimation()
+{
+	if (OnPlayAnimation)
+		PlayAnimation(OnPlayAnimation);
+}
