@@ -182,3 +182,11 @@ void ALucioBallMode::SetGoalScore(bool IsPlayerTeam)
 	
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ALucioBallMode::SpawnBouncyBall, 5.0f, false);
 }
+
+void ALucioBallMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	FString Team = UGameplayStatics::ParseOption(Options, TEXT("mode"));
+	UE_LOG(LogTemp, Warning, TEXT("Mode : %s"), *Team);
+}

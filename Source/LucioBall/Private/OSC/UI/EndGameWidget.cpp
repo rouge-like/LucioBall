@@ -32,3 +32,4 @@ void UEndGameWidget::OnPlaybackResumed()
 	MediaImage->SetVisibility(ESlateVisibility::Visible);
 }
 
+
