@@ -45,6 +45,9 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UEndGameWidget> EndGame;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> StartTimer;
 	
 	void UpdatePlayerScore(int32 NewScore);
 	void UpdateOtherScore(int32 NewScore);
@@ -52,6 +55,7 @@ public:
 	void UpdateGoalText(FText Text);
 	void UpdateSkill(int Idx, float Sec);
 	void UpdateUlt(float DeltaTime);
+	void UpdateStartTimer(float CurrentTime);
 	
 	UFUNCTION(BlueprintCallable)
 	void UseSkill(int Idx);

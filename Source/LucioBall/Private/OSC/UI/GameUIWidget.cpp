@@ -3,6 +3,7 @@
 
 #include "OSC/UI/GameUIWidget.h"
 
+#include "Components/TextBlock.h"
 #include "OSC/UI/EndGameWidget.h"
 #include "OSC/UI/ScoreWidget.h"
 #include "OSC/UI/TimerWidget.h"
@@ -56,6 +57,19 @@ void UGameUIWidget::UpdateSkill(int Idx, float Sec)
 void UGameUIWidget::UpdateUlt(float DeltaTime)
 {
 	UltWidget->UpdateProgress(DeltaTime);
+}
+
+void UGameUIWidget::UpdateStartTimer(float CurrentTime)
+{
+	int32 Time = FMath::FloorToInt(CurrentTime);
+
+	if (StartTimer)
+	{
+		StartTimer->SetText(FText::AsNumber(Time + 1));
+
+		if (CurrentTime <= 0)
+			StartTimer->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UGameUIWidget::UseSkill(int Idx)

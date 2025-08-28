@@ -30,6 +30,10 @@ private:
 	const float SlowdownDuration = 1.0f;
 	UPROPERTY(EditDefaultsOnly)
 	float EndGameTimer = 2.3f;
+
+	float RealStopedTime;
+	float StartTime = 3.0f;
+	bool bPause = true;
 	
 	UFUNCTION()
 	void SpawnBouncyBall();
