@@ -25,7 +25,7 @@ void AGameHUD::BeginPlay()
 
 		if (GameUIWidget)
 		{
-			GameUIWidget->AddToViewport();
+			GameUIWidget->AddToViewport(1);
 		}
 	}
 }

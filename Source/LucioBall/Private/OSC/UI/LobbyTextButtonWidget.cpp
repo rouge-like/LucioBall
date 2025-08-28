@@ -23,6 +23,16 @@ void ULobbyTextButtonWidget::NativeOnMouseEnter(const FGeometry& InGeometry, con
     }
 }
 
+void ULobbyTextButtonWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+    Super::NativeOnMouseLeave(InMouseEvent);
+
+    if (MouseOutAnimation)
+    {
+        PlayAnimation(MouseOutAnimation);
+    }
+}
+
 void ULobbyTextButtonWidget::OnMainButtonClicked()
 {
     if (MouseClickAnimation)

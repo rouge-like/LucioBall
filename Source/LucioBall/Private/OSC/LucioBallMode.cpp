@@ -3,6 +3,7 @@
 
 #include "OSC/LucioBallMode.h"
 
+#include "CEJ/Ai/AiLucioDynamic.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "OSC/BouncyBall.h"
@@ -101,12 +102,12 @@ void ALucioBallMode::OnGameEnd()
 		
 		if (PlayerScore >= AIScore)
 		{
-			HUD->GetGameUIWidget()->OnVictoryDelegate.Broadcast();
+			HUD->GetGameUIWidget()->OnVictory();
 			UGameplayStatics::PlaySound2D(GetWorld(), VictorySFX);
 		}
 		else
 		{
-			HUD->GetGameUIWidget()->OnDefeatDelegate.Broadcast();
+			HUD->GetGameUIWidget()->OnDefeat();
 			UGameplayStatics::PlaySound2D(GetWorld(), DefeatSFX);
 		}
 	}
@@ -181,4 +182,26 @@ void ALucioBallMode::SetGoalScore(bool IsPlayerTeam)
 	}
 	
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ALucioBallMode::SpawnBouncyBall, 5.0f, false);
+}
+
+void ALucioBallMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	FString Team = UGameplayStatics::ParseOption(Options, TEXT("mode"));
+	UE_LOG(LogTemp, Warning, TEXT("Mode : %s"), *Team);
+
+	if (Team == TEXT("1vs2"))
+	{
+		AAiLucioDynamic* AI1 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[0], FRotator(0, 90, 0));
+		AI1->Tags.Add(TEXT("Defender"));
+		
+		AAiLucioDynamic* AI2 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[1], FRotator(0, 90, 0));
+		AI2->Tags.Add(TEXT("Attacker"));
+	}
+	else
+	{
+		AAiLucioDynamic* AI2 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[1], FRotator(0, 90, 0));
+		AI2->Tags.Add(TEXT("Defender"));
+	}
 }

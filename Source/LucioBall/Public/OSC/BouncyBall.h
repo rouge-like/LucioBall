@@ -73,7 +73,7 @@ public:
 	void BouncyBallAddImpulse(FVector Impulse, AActor* Attacker);
 
 	UFUNCTION(BlueprintCallable)
-	void BouncyBallSetVelocity(FVector Impulse, AActor* Attacker);
+	void SetBouncyBallVelocity(FVector Impulse, AActor* Attacker);
 
 	UFUNCTION(BlueprintCallable)
 	AActor* GetLastAttacker() const { return LastAttacker; };

@@ -2,11 +2,23 @@
 
 
 #include "OSC/UI/GameUIWidget.h"
+
+#include "OSC/UI/EndGameWidget.h"
 #include "OSC/UI/ScoreWidget.h"
 #include "OSC/UI/TimerWidget.h"
 #include "OSC/UI/GoalTextWidget.h"
-#include  "OSC/UI/SkillWidget.h"
-#include  "OSC/UI/UltGaugeWidget.h"
+#include "OSC/UI/SkillWidget.h"
+#include "OSC/UI/UltGaugeWidget.h"
+
+void UGameUIWidget::OnVictory()
+{
+	EndGame->OnVictory();
+}
+
+void UGameUIWidget::OnDefeat()
+{
+	EndGame->OnDefeact();
+}
 
 void UGameUIWidget::UpdatePlayerScore(int32 NewScore)
 {

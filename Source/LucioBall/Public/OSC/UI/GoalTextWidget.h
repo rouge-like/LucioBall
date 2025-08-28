@@ -27,7 +27,7 @@ public:
 	TObjectPtr<UTextBlock> GoalText;
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
-	UWidgetAnimation* GoalTextAnimation;
+	TObjectPtr<UWidgetAnimation> GoalTextAnimation;
 	
 	void UpdateGoalText(FText Text);
 };
