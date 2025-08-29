@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "InputActionValue.h"
 #include "Player_Lucio.generated.h"
 
 UCLASS()
@@ -26,12 +27,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	// class UCapsuleComponent* CapsuleComp;
+	//
+	// UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	// class USkeletalMeshComponent* SkeletalMeshComp;
+
+	class UCharacterMovementComponent* MoveComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsWallRiding;
-
-	UFUNCTION(BlueprintCallable)
-	void MyDive();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DiveForce;
@@ -49,13 +54,16 @@ public:
 	float WallRideSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WallJumpPower;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector WallRideNormal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector WallRideEntryVelocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float CurrentWallRideZ;
+	float WallRideEntryZ;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SoundWaveDistance;
@@ -108,5 +116,38 @@ public:
 	
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UCameraComponent* FollowCamComp;*/
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UInputMappingContext* IMC_Player;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UInputAction* IA_Dive;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UInputAction* IA_Jump;
+
+	UFUNCTION(BlueprintCallable)
+	void OnDive(const FInputActionValue& Value);
+
+	UFUNCTION(BlueprintCallable)
+	void OnWallJump(const FInputActionValue&  Value);
+
+	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UCameraShakeBase> LandingShake;
+	
+	UFUNCTION(BlueprintCallable)
+	void OnMyLanded(const FHitResult& Hit);
+
+	UFUNCTION(BlueprintCallable)
+	void OnJumpPointBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(BlueprintCallable)
+	void OnJumpPointEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+
+	UFUNCTION(BlueprintCallable)
+	void WallRide(float DeltaTime);
 	
 };

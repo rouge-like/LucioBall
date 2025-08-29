@@ -20,8 +20,6 @@ ALucioBallMode::ALucioBallMode()
 
 void ALucioBallMode::BeginPlay()
 {
-	SpawnBouncyBall();
-
 	CurrentTime = Time;
 	HUD = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetHUD<AGameHUD>();
 
@@ -33,12 +31,30 @@ void ALucioBallMode::BeginPlay()
 		PlayerController->SetInputMode(InputMode);
 		PlayerController->bShowMouseCursor = false;
 	}
+
+	RealStopedTime = GetWorld()->GetRealTimeSeconds();
+
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.0f);
+	bPause = true;
 }
 
 void ALucioBallMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	float DeltaRealTime = GetWorld()->GetRealTimeSeconds() - RealStopedTime;
+
+	if (bPause && DeltaRealTime >= StartTime)
+	{
+		bPause = false;
+		HUD->GetGameUIWidget()->UpdateStartTimer(StartTime - DeltaRealTime);
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+		SpawnBouncyBall();
+	}
+	else if (bPause)
+	{
+		HUD->GetGameUIWidget()->UpdateStartTimer(StartTime - DeltaRealTime);
+	}
 	if (CurrentTime > 0.0f)
 	{
 		CurrentTime -= DeltaTime;
@@ -78,18 +94,6 @@ void ALucioBallMode::SpawnBouncyBall()
 	if (BouncyBall)
 	{
 		GetWorld()->SpawnActor<ABouncyBall>(BouncyBall, BallSpawnPosition, FRotator::ZeroRotator);
-
-		// APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-		// if (PlayerController)
-		// {
-		// 	APawn* Player = PlayerController->GetPawn();
-		// 	AActor* PlayerStart = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
-		// 	if (Player)
-		// 	{
-		// 		Player->SetActorLocation(PlayerStart->GetActorLocation());
-		// 		Player->SetActorRotation(PlayerStart->GetActorRotation());
-		// 	}
-		// }
 	}
 }
 
