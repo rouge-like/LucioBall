@@ -17,6 +17,7 @@ public class LucioBall : ModuleRules
 			"CoreUObject", 
 			"Engine", 
 			"InputCore",
+			"EnhancedInput",
 			"UMG",
 			"AIModule",
 			"NavigationSystem",
