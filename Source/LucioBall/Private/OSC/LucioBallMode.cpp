@@ -36,6 +36,7 @@ void ALucioBallMode::BeginPlay()
 
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.0f);
 	bPause = true;
+	UGameplayStatics::PlaySound2D(GetWorld(), StartSFX);
 }
 
 void ALucioBallMode::Tick(float DeltaTime)
@@ -123,14 +124,14 @@ void ALucioBallMode::SetGoalScore(bool IsPlayerTeam, bool IsOwnGoal, FString Att
 
 	if (IsOwnGoal)
 	{
-		Goal = TEXT("OwnGoal!");
+		Goal = TEXT("자책골!");
 	}
 	else
 	{
-		Goal = TEXT("Goal!");
+		Goal = TEXT("득점!");
 	}
 	
-	FString Log = AttackerName + TEXT("'s ") + Goal;
+	FString Log = AttackerName + TEXT("의 ") + Goal;
 	
 	if (IsPlayerTeam)
 	{
@@ -199,13 +200,15 @@ void ALucioBallMode::InitGame(const FString& MapName, const FString& Options, FS
 	{
 		AAiLucioDynamic* AI1 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[0], FRotator(0, 90, 0));
 		AI1->Tags.Add(TEXT("Defender"));
-		
+		AI1->Rename(TEXT("Monkey 여민"));
 		AAiLucioDynamic* AI2 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[1], FRotator(0, 90, 0));
 		AI2->Tags.Add(TEXT("Attacker"));
+		AI2->Rename(TEXT("아오 여민시치"));
 	}
 	else
 	{
 		AAiLucioDynamic* AI2 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[1], FRotator(0, 90, 0));
 		AI2->Tags.Add(TEXT("Defender"));
+		AI2->Rename(TEXT("아오 여민시치"));
 	}
 }

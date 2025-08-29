@@ -15,4 +15,8 @@ class LUCIOBALL_API ALobbyGameMode : public AGameModeBase
 	GENERATED_BODY()
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundBase> LobbyBGM;
 };

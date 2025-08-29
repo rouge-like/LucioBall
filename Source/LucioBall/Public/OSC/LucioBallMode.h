@@ -23,6 +23,7 @@ private:
 
 	FTimerHandle TimerHandle;
 	
+	UPROPERTY()
 	AGameHUD* HUD;
 
 	bool bIsGameEnding = false;
@@ -44,13 +45,16 @@ public:
 	ALucioBallMode();
 	
 	UPROPERTY(EditDefaultsOnly)
+	
 	float Time = 240;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundBase> StartSFX;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundBase> VictorySFX;
 
 	UPROPERTY(EditDefaultsOnly)
-	USoundBase* VictorySFX;
-
-	UPROPERTY(EditDefaultsOnly)
-	USoundBase* DefeatSFX;
+	TObjectPtr<USoundBase> DefeatSFX;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "A_Mode")
 	TSubclassOf<ABouncyBall> BouncyBall;
