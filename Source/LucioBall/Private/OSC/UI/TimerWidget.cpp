@@ -6,10 +6,10 @@
 
 void UTimerWidget::UpdateRemainTime(float time)
 {
-	int IntTime = FMath::FloorToInt(time);
+	int IntTime = FMath::FloorToInt(time + 1);
 	
 	int32 Min = IntTime / 60;
-	int32 Sec = IntTime % 60;
+	int32 Sec = IntTime % 60;    
 
 	if (RemainTimeText)
 	{

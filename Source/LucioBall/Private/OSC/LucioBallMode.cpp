@@ -54,7 +54,12 @@ void ALucioBallMode::Tick(float DeltaTime)
 	}
 	else if (bPause)
 	{
-		HUD->GetGameUIWidget()->UpdateStartTimer(StartTime - DeltaRealTime);
+		int32 TextTime = FMath::FloorToInt(StartTime - DeltaRealTime + 1);
+		if (TextTime != ShowTime)
+		{
+			HUD->GetGameUIWidget()->UpdateStartTimer(TextTime);
+			ShowTime = TextTime;
+		}
 	}
 	if (CurrentTime > 0.0f)
 	{
@@ -200,7 +205,7 @@ void ALucioBallMode::InitGame(const FString& MapName, const FString& Options, FS
 	{
 		AAiLucioDynamic* AI1 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[0], FRotator(0, 90, 0));
 		AI1->Tags.Add(TEXT("Defender"));
-		AI1->Rename(TEXT("Monkey 여민"));
+		AI1->Rename(TEXT("원숭여민"));
 		AAiLucioDynamic* AI2 = GetWorld()->SpawnActor<AAiLucioDynamic>(LucioAIFactory, SpawnPoints[1], FRotator(0, 90, 0));
 		AI2->Tags.Add(TEXT("Attacker"));
 		AI2->Rename(TEXT("아오 여민시치"));

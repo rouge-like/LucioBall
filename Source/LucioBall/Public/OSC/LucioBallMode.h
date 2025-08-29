@@ -35,6 +35,7 @@ private:
 	float RealStopedTime;
 	float StartTime = 3.0f;
 	bool bPause = true;
+	int32 ShowTime;
 	
 	UFUNCTION()
 	void SpawnBouncyBall();

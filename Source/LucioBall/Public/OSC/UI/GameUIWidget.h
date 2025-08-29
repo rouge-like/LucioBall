@@ -48,6 +48,9 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> StartTimer;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> StartTimeAnimation;
 	
 	void UpdatePlayerScore(int32 NewScore);
 	void UpdateOtherScore(int32 NewScore);
@@ -55,7 +58,7 @@ public:
 	void UpdateGoalText(FText Text);
 	void UpdateSkill(int Idx, float Sec);
 	void UpdateUlt(float DeltaTime);
-	void UpdateStartTimer(float CurrentTime);
+	void UpdateStartTimer(int32 CurrentTime);
 	
 	UFUNCTION(BlueprintCallable)
 	void UseSkill(int Idx);
