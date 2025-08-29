@@ -9,7 +9,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
+#include "Camera/CameraShakeBase.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 APlayer_Lucio::APlayer_Lucio()
@@ -44,6 +45,15 @@ void APlayer_Lucio::BeginPlay()
 	{
 		subsys->AddMappingContext(IMC_Player, 0);
 	}
+
+	if (ACharacter* MyChar = Cast<ACharacter>(this))
+	{
+		MyChar->LandedDelegate.AddDynamic(this, &APlayer_Lucio::OnMyLanded);
+	}
+
+	// OnComponentOverlap 이벤트들을 클래스에서 생성한 이벤트와 바인드
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayer_Lucio::OnJumpPointBeginOverlap);
+	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayer_Lucio::OnJumpPointEndOverlap);
 }
 
 // Called every frame
@@ -85,4 +95,65 @@ void APlayer_Lucio::OnWallJump(const FInputActionValue& Vorce)
 		
 	}
 }
+
+void APlayer_Lucio::OnMyLanded(const FHitResult& Hit)
+{
+	if (LandingShake && GetController())
+	{
+		GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(LandingShake);
+	}
+}
+
+void APlayer_Lucio::OnJumpPointBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && (OtherActor != this))
+	{
+		if (OtherActor->ActorHasTag(TEXT("JumpPoint")))
+		{
+			MoveComp->JumpZVelocity = 1400.f;
+		}
+	}
+}
+
+void APlayer_Lucio::OnJumpPointEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && (OtherActor != this))
+	{
+		if (OtherActor->ActorHasTag(TEXT("JumpPoint")))
+		{
+			MoveComp->JumpZVelocity = DefaultJumpPower;
+		}
+	}
+}
+
+void APlayer_Lucio::WallRide(float DeltaTime)
+{
+	// 외적을 이용해 접촉한 벽과 수평인 방향벡터 계산
+	FVector SlideDircetion = FVector::CrossProduct(WallRideNormal, FVector(0, 0, 1));
+
+	// 내적을 이용해 진입한 방향과 슬라이딩할 벡터가 같은 방향인지 확인
+	float EntryDotProduct = FVector::DotProduct(WallRideEntryVelocity, SlideDircetion);
+
+	// 내적한 값이 양수이면 같은 방향을 반환, 음수이면 반대로 돌려서 반환함 (블루프린트의 select노드와 똑같은 역할)
+	FVector TrueSlideDirection = (EntryDotProduct > 0) ? SlideDircetion : -SlideDircetion;
+
+	FVector TargetVelocity = TrueSlideDirection.GetSafeNormal() * WallRideSpeed;
+	FVector CurrentVelocity = MoveComp->Velocity;
+
+	FVector WallRideVelocity = FMath::VInterpTo(CurrentVelocity, TargetVelocity, DeltaTime, 100.f);
+
+	bIsWallRiding = true;
+	MoveComp->GravityScale = 0.f;
+	//if (GetActorLocation().Z < ( WallRideEntryZ + 100.f))
+	//{
+		MoveComp->Velocity = FVector(WallRideVelocity.X, WallRideVelocity.Y, FMath::FInterpTo(WallRideEntryZ, WallRideEntryZ + 100.f, DeltaTime, 0.f) - WallRideEntryZ);
+	//}
+	//else
+	//{
+		//MoveComp->Velocity = FVector(WallRideVelocity.X, WallRideVelocity.Y, 0);
+	//}
+}
+
 

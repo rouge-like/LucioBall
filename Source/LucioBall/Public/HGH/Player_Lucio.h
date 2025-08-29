@@ -63,7 +63,7 @@ public:
 	FVector WallRideEntryVelocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float CurrentWallRideZ;
+	float WallRideEntryZ;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SoundWaveDistance;
@@ -131,4 +131,23 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnWallJump(const FInputActionValue&  Value);
+
+	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UCameraShakeBase> LandingShake;
+	
+	UFUNCTION(BlueprintCallable)
+	void OnMyLanded(const FHitResult& Hit);
+
+	UFUNCTION(BlueprintCallable)
+	void OnJumpPointBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(BlueprintCallable)
+	void OnJumpPointEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+
+	UFUNCTION(BlueprintCallable)
+	void WallRide(float DeltaTime);
+	
 };
