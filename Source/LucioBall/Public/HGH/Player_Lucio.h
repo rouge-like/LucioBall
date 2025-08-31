@@ -149,5 +149,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void WallRide(float DeltaTime);
+
+	UFUNCTION(BlueprintCallable)
+	void WallRideCameraTilt();
 	
+	UFUNCTION(BlueprintCallable)
+	void WallCheck(float DeltaTime);
 };

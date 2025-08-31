@@ -11,6 +11,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraShakeBase.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "OSC/BouncyBall.h"
 
 // Sets default values
 APlayer_Lucio::APlayer_Lucio()
@@ -146,14 +147,28 @@ void APlayer_Lucio::WallRide(float DeltaTime)
 
 	bIsWallRiding = true;
 	MoveComp->GravityScale = 0.f;
-	//if (GetActorLocation().Z < ( WallRideEntryZ + 100.f))
-	//{
+	if (GetActorLocation().Z < ( WallRideEntryZ + 100.f))
+	{
 		MoveComp->Velocity = FVector(WallRideVelocity.X, WallRideVelocity.Y, FMath::FInterpTo(WallRideEntryZ, WallRideEntryZ + 100.f, DeltaTime, 0.f) - WallRideEntryZ);
-	//}
-	//else
-	//{
-		//MoveComp->Velocity = FVector(WallRideVelocity.X, WallRideVelocity.Y, 0);
-	//}
+	}
+	else
+	{
+		MoveComp->Velocity = FVector(WallRideVelocity.X, WallRideVelocity.Y, 0);
+	}
+}
+
+void APlayer_Lucio::WallRideCameraTilt()
+{
+	if (bIsWallRiding)
+	{
+		
+	}
+}
+
+void APlayer_Lucio::WallCheck(float DeltaTime)
+{
+	
+	
 }
 
 
