@@ -3,6 +3,8 @@
 
 #include "OSC/LobbyGameMode.h"
 
+#include "Kismet/GameplayStatics.h"
+
 void ALobbyGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -16,4 +18,6 @@ void ALobbyGameMode::BeginPlay()
 		PlayerController->SetInputMode(InputMode);
 		PlayerController->bShowMouseCursor = true;
 	}
+	
+	UGameplayStatics::PlaySound2D(GetWorld(), LobbyBGM);
 }

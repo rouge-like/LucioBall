@@ -16,7 +16,6 @@ void UGoalTextWidget::SetHidden()
 
 void UGoalTextWidget::UpdateGoalText(FText Text)
 {
-	//TODO : Animation
 	if (GoalTextAnimation)
 	{
 		PlayAnimation(GoalTextAnimation);

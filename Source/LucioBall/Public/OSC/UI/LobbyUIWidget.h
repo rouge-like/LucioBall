@@ -20,4 +20,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void PlayOnPlayAnimation();
+
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 };

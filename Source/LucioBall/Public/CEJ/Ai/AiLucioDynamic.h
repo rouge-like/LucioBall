@@ -39,7 +39,7 @@ protected:
     int32 PlayerID = 1;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Settings")
-    bool bDebug = true;
+    bool bDebug = false;
 
     // 역할 태그 설정 (이 태그들을 가진 경우 해당 역할로 고정)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Settings")
@@ -60,10 +60,10 @@ protected:
 
     // ========== 행동 설정 ==========
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior Settings")
-    float PossessionRadius = 500.0f;
+    float PossessionRadius = 200.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior Settings")
-    float AttackDistance = 1.0f;
+    float AttackDistance = 200.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior Settings")
     float DefenseDistance = 800.0f;
