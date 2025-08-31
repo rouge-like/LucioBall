@@ -684,17 +684,15 @@ void AAiLucioDynamic::ExecuteAttackBehavior(float DeltaTime)
                                         BallLoc + (IntendedClearDirection * 250.0f), 
                                         25.0f, 
                                         FColor::Purple, 
-                                        false, 
+                                        false,
                                         0.0f, 
                                         0, 
                                         5.0f);
             }
-            
             // 공에 충분히 가까워졌는지 확인
             if (DistToBall <= PossessionRadius)
             {
                 CurrentState = ELucioDynamicState::AttackBall;
-                UE_LOG(LogTemp, Log, TEXT("Attack AI %d: SeekBall -> AttackBall"), PlayerID);
             }
             break;
         }
@@ -709,15 +707,15 @@ void AAiLucioDynamic::ExecuteAttackBehavior(float DeltaTime)
                 FVector KickDirection = (GoalLocation - BallLoc).GetSafeNormal();
                 
                 // Z 값을 조정하여 공이 골대로 향하도록 함
-                KickDirection.Z = 0.3f; // 약간의 상향 각도로 증가
+                KickDirection.Z = 0.f; // 약간의 상향 각도로 증가
                 KickDirection.Normalize();
                 
                 // 공에 임펄스 적용
                 FVector Impulse = KickDirection * AttackKickImpulse;
-                BallActor->BouncyBallAddImpulse(Impulse, this);
+                BallActor->SetBouncyBallVelocity(Impulse, this);
                 
                 // 디버그: 공격 방향 화살표 표시
-                DrawDebugDirectionalArrow(GetWorld(), 
+                if (bDebug) DrawDebugDirectionalArrow(GetWorld(), 
                                         BallLoc, 
                                         BallLoc + (KickDirection * 500.0f), 
                                         50.0f, 
@@ -842,19 +840,21 @@ void AAiLucioDynamic::ExecuteDefenseBehavior(float DeltaTime)
                     FVector GoalDirection = (GoalLocation - BallLoc).GetSafeNormal();
                     
                     // X,Y는 골대 방향, Z는 +300
-                    ClearImpulse = FVector(GoalDirection.X, GoalDirection.Y, 1.0f).GetSafeNormal() * AttackKickImpulse * 0.9f;
-                    ClearImpulse.Z = 300.0f; // Z 값을 명시적으로 300으로 설정
+                    ClearImpulse = GoalDirection * AttackKickImpulse * 0.9f;
+                    //ClearImpulse.Z = 300.0f; // Z 값을 명시적으로 300으로 설정
                 }
                 else
                 {
                     // 골대를 찾지 못한 경우 기본 Z+300 클리어
-                    ClearImpulse = FVector(0.0f, 0.0f, 300.0f);
+                    // ClearImpulse = FVector(0.0f, 0.0f, 300.0f);
+                    ClearImpulse = (GetActorForwardVector() + FVector(0.0f, 0.0f, 10.0f)).GetSafeNormal() * AttackKickImpulse;
+                    
                 }
                 
-                BallActor->BouncyBallAddImpulse(ClearImpulse, this);
+                BallActor->SetBouncyBallVelocity(ClearImpulse, this);
 
                 // 디버그: 클리어 방향 화살표 표시 (SoccerGoal 방향 + Z+300)
-                DrawDebugDirectionalArrow(GetWorld(), 
+                if (bDebug) DrawDebugDirectionalArrow(GetWorld(), 
                                         BallLoc, 
                                         BallLoc + ClearImpulse.GetSafeNormal() * 500.0f, 
                                         50.0f, 
@@ -891,8 +891,8 @@ void AAiLucioDynamic::ExecuteDefenseBehavior(float DeltaTime)
                     FVector GoalDirection = (GoalLocation - BallLoc).GetSafeNormal();
                     
                     // X,Y는 골대 방향, Z는 +300
-                    ClearImpulse = FVector(GoalDirection.X, GoalDirection.Y, 1.0f).GetSafeNormal() * AttackKickImpulse * 0.9f;
-                    ClearImpulse.Z = 300.0f; // Z 값을 명시적으로 300으로 설정
+                    ClearImpulse = FVector(GoalDirection.X, GoalDirection.Y, 300.0f).GetSafeNormal() * AttackKickImpulse * 0.9f;
+                    //ClearImpulse.Z = 300.0f; // Z 값을 명시적으로 300으로 설정
                 }
                 else
                 {
@@ -900,10 +900,11 @@ void AAiLucioDynamic::ExecuteDefenseBehavior(float DeltaTime)
                     ClearImpulse = FVector(0.0f, 0.0f, 300.0f);
                 }
                 
-                BallActor->BouncyBallAddImpulse(ClearImpulse, this);
+                BallActor->SetBouncyBallVelocity(ClearImpulse, this);
+
                 
                 // 디버그: 긴급 클리어 방향 화살표 표시 (SoccerGoal 방향 + Z+300)
-                DrawDebugDirectionalArrow(GetWorld(), 
+                if (bDebug) DrawDebugDirectionalArrow(GetWorld(), 
                                         BallLoc, 
                                         BallLoc + ClearImpulse.GetSafeNormal() * 400.0f, 
                                         40.0f, 
@@ -1030,7 +1031,7 @@ void AAiLucioDynamic::HandleJumpBehavior()
     
     const FVector BallLoc = GetBallLocation();
     const FVector MyLoc = GetActorLocation();
-    const float DistToBall = FVector::Dist2D(MyLoc, BallLoc); // 2D 거리로 계산
+    const float DistToBall = FVector::Dist(MyLoc, BallLoc); // 2D 거리로 계산
     const float BallHeight = BallLoc.Z;
     const float MyHeight = MyLoc.Z;
     const float HeightDifference = BallHeight - MyHeight;
@@ -1054,7 +1055,7 @@ void AAiLucioDynamic::HandleJumpBehavior()
         
         // 점프 시작 시간과 초기 속도 기록
         JumpStartTime = GetWorld()->GetTimeSeconds();
-        InitialJumpVelocity = 700.0f; // JumpZVelocity 값
+        InitialJumpVelocity = 400.0f; // JumpZVelocity 값
         
         // 점프력 700 적용
         Jump();

@@ -110,5 +110,5 @@ private:
 
     /** 디버깅 */
     UPROPERTY(EditAnywhere, Category="Debug")
-    bool bDebug = true;
+    bool bDebug = false;
 };
