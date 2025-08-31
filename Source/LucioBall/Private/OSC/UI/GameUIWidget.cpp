@@ -59,17 +59,13 @@ void UGameUIWidget::UpdateUlt(float DeltaTime)
 	UltWidget->UpdateProgress(DeltaTime);
 }
 
-void UGameUIWidget::UpdateStartTimer(float CurrentTime)
+void UGameUIWidget::UpdateStartTimer(int32 CurrentTime)
 {
-	int32 Time = FMath::FloorToInt(CurrentTime);
-
-	if (StartTimer)
-	{
-		StartTimer->SetText(FText::AsNumber(Time + 1));
-
-		if (CurrentTime <= 0)
-			StartTimer->SetVisibility(ESlateVisibility::Hidden);
-	}
+	StartTimer->SetText(FText::AsNumber(CurrentTime));
+	PlayAnimation(StartTimeAnimation);
+	if (CurrentTime <= 0)
+		StartTimer->SetVisibility(ESlateVisibility::Hidden);
+	
 }
 
 void UGameUIWidget::UseSkill(int Idx)

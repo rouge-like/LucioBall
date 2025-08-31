@@ -73,8 +73,9 @@ void AGoalPost::OnGoalHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		{
 			bool IsPlayer = IsActorPlayer(Attacker);
 			bool IsOwnGoal = !(IsPlayer ^ bIsPlayerTeam);
-			
-			LucioBallMode->SetGoalScore(!bIsPlayerTeam, IsOwnGoal, Attacker->GetName());
+			FString Name = Attacker->GetName();
+			if (IsPlayer) Name = TEXT("루시우");
+			LucioBallMode->SetGoalScore(!bIsPlayerTeam, IsOwnGoal, Name);
 		}
 		else
 		{
