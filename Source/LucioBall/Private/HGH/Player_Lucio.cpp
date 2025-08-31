@@ -4,13 +4,16 @@
 //#include "Player_Lucio.h"
 #include "HGH/Player_Lucio.h"
 
+#include "AnalyticsEventAttribute.h"
 #include "Components/CapsuleComponent.h"
 #include "DataWrappers/ChaosVDJointDataWrappers.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraShakeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "OSC/BouncyBall.h"
 
 // Sets default values
@@ -62,6 +65,7 @@ void APlayer_Lucio::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	WallCheck(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -167,7 +171,44 @@ void APlayer_Lucio::WallRideCameraTilt()
 
 void APlayer_Lucio::WallCheck(float DeltaTime)
 {
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	FHitResult HitResult;
 	
+	if (MoveComp->IsFalling())
+	{
+		bCanUseDive = true;
+		bool bIsHit = UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), GetActorLocation(), GetActorLocation(), 50.f, ObjectTypes, false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
+
+		if (bIsHit && UGameplayStatics::GetPlayerController(GetWorld(), 0)->IsInputKeyDown(EKeys::SpaceBar))
+		{
+			if (bIsWallRiding)
+			{
+				WallRide(DeltaTime);
+			}
+			else
+			{
+				WallRideEntryZ = GetActorLocation().Z;
+				WallRideNormal = HitResult.ImpactNormal;
+				WallRideEntryVelocity = MoveComp->Velocity;
+				WallRide(DeltaTime);
+			}
+		}
+		else
+		{
+			bIsWallRiding = false;
+			MoveComp->GravityScale = 1.75f;
+		}
+	}
+	else
+	{
+		bIsWallRiding = false;
+		bCanUseDive = false;
+	}
 	
 }
 
