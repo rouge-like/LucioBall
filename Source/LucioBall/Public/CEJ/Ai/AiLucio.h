@@ -1,197 +1,89 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-/**
-루시우 연속 움직임 AI
-(점프포인트 → 벽달리기 → 볼 킥)
-*/
+﻿#pragma once
 
 #pragma once
-
 #include "CoreMinimal.h"
-#include "AIController.h"
 #include "GameFramework/Character.h"
 #include "AiLucio.generated.h"
 
+class ULucioSkillComponent;
+class ULucioTeamComponent;
+class ULucioBallSensorComponent;
+class ULucioMoveAssistComponent;
+class ULucioCombatComponent;
+class ABouncyBall;
+class UCharacterMovementComponent;
+class UTextRenderComponent;
 class AAIController;
-class UAnimSequence;
-class UMaterialInterface;
 
 UENUM(BlueprintType)
-enum class ELucioAIState : uint8
+enum class ELucioState : uint8
 {
-	SeekJumpPoint,
-	Jumping,
-	WallRun,
-	FallingFast,
-	BallKick,
-	HoldCenter,
-	Idle
+    Idle,
+    SeekBall,
+    AttackBall,
+    ClearBall,
+    DefendGoal
 };
 
 UCLASS()
 class LUCIOBALL_API AAiLucio : public ACharacter
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
-	AAiLucio();
+    AAiLucio();
 
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
     virtual void Tick(float DeltaSeconds) override;
-	virtual void PossessedBy(AController* NewController) override;
 
+    // ===== Components =====
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Lucio|Comp")
+    ULucioSkillComponent*     SkillComp;
 
-protected:
-    // 검색 
-    void FindJumpPointOnce();
-    void FindBallOnce();
-    void FindGoalOnce();
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Lucio|Comp")
+    ULucioTeamComponent*      TeamComp;
 
-    // 상태 전이
-    void GotoState(ELucioAIState NewState);
-    void Tick_SeekJumpPoint(float Dt);
-    void Tick_Jumping(float Dt);
-    void Tick_WallRun(float Dt);
-    void Tick_FallingFast(float Dt);
-    void Tick_BallKick(float Dt);
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Lucio|Comp")
+    ULucioBallSensorComponent* SenseComp;
 
-    bool MoveToActorSmart(AActor* Target, float Radius=120.f);
-    bool MoveToLocationSmart(const FVector& Dest, float Radius=120.f);
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Lucio|Comp")
+    ULucioMoveAssistComponent* MoveComp;
 
-    // 벽 탐지/계산
-    bool TraceForWall(const FVector& From, const FVector& Dir, float Length, FHitResult& OutHit) const;
-    FVector ComputeWallTangent(const FVector& WallNormal, const FVector& Up = FVector::UpVector) const;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Lucio|Comp")
+    ULucioCombatComponent*    CombatComp;
 
-    // 볼 킥 유틸
-    void ComputeBallApproach(const FVector& Ball, const FVector& Goal,
-                             FVector& OutApproach, FVector& OutKick, FVector& OutDirToGoal) const;
-	
+    // ===== Config =====
+    UPROPERTY(EditAnywhere, Category="Lucio|Config")
+    float PossessionRadius = 100.f;
 
-public:
+    UPROPERTY(EditAnywhere, Category="Lucio|UI")
+    bool bShowRoleText = true;
 
-    UPROPERTY(EditAnywhere, Category="Tags")
-    FName JumpPointTag = TEXT("JumpPoint4");
+    UPROPERTY(EditAnywhere, Category="Lucio|UI")
+    float TextHeightOffset = 120.f;
 
-    UPROPERTY(EditAnywhere, Category="Tags")
-    FName WallTag = TEXT("Wall");
+    // ===== Runtime =====
+    UPROPERTY(VisibleAnywhere, Category="Lucio|State")
+    ELucioState State = ELucioState::Idle;
 
-    UPROPERTY(EditAnywhere, Category="Tags")
-    FName BallTag = TEXT("BouncyBall");
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    UAnimSequence* MoveAnim;
 
-    UPROPERTY(EditAnywhere, Category="Tags")
-    FName GoalTag = TEXT("SoccerGoal");
-
-	UPROPERTY(EditAnywhere, Category="Tags")
-	FName FieldTag = TEXT("Soccer_Field_0");
-
-	
-
-    UPROPERTY(EditAnywhere, Category="Move")
-    float AcceptanceRadius = 0.1f;
-
-    // 점프
-    UPROPERTY(EditAnywhere, Category="Jump")
-    float JumpZVelocity = 800.f;
-
-    // 벽 탐지/주행
-    UPROPERTY(EditAnywhere, Category="WallRun")
-    float WallTraceLength = 120.f;
-
-    UPROPERTY(EditAnywhere, Category="WallRun")
-    float WallTraceRadius = 30.f;      // 스피어 트레이스 반경
-
-    UPROPERTY(EditAnywhere, Category="WallRun")
-    float MaxWallSpeed = 1500.f;
-
-    UPROPERTY(EditAnywhere, Category="WallRun")
-    float StickStrength = 30.f;        // 벽 쪽으로 살짝 붙이는 보정(cm)
-
-    UPROPERTY(EditAnywhere, Category="WallRun")
-    float WallEndProbe = 200.f;        // 진행 방향으로 벽이 더 있는지 확인 길이
-
-    // 하강 가속
-    UPROPERTY(EditAnywhere, Category="Fall")
-    float FastFallGravityScale = 3.0f;
-
-    UPROPERTY(EditAnywhere, Category="Fall")
-    float NormalGravityScale = 1.0f;
-
-    // 볼 킥
-    UPROPERTY(EditAnywhere, Category="BallKick")
-    float BehindBallDistance = 220.f;
-
-    UPROPERTY(EditAnywhere, Category="BallKick")
-    float KickThroughDistance = 300.f;
-
-    UPROPERTY(EditAnywhere, Category="BallKick")
-    float ApproachTolerance = 120.f;
-
-    // 디버그
-    UPROPERTY(EditAnywhere, Category="Debug")
-    bool bDebug = true;
-
-	UPROPERTY()
-	UAnimSequence* CurrentAnim = nullptr;
-	UPROPERTY()
-	UAnimSequence* MoveAnim = nullptr;
-	UPROPERTY()
-	UAnimSequence* StayAnim= nullptr;
-	void UpdateLocomotionAnim(float Speed);
-
-	// 공에 충분히 가까울 때 킥 트리거
-	UPROPERTY(EditAnywhere, Category="AI|Kick")
-	float KickTriggerDistance = 60.f;     // 공과 AI 거리 (cm)
-
-	// “볼–골” 거리가 이 값 이상이면 슛 발동
-	UPROPERTY(EditAnywhere, Category="AI|Kick")
-	float GoalShootDistance = 1.f;        // 1cm (1m 원하면 100.f)
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    class UAnimSequence* JumpAnim;
+    
+    UPROPERTY(BlueprintReadOnly, Category = "Animation")
+    bool bIsPlayingMoveAnim = false;
 
 protected:
-    // 상태/타깃 핸들
-    ELucioAIState State = ELucioAIState::SeekJumpPoint;
+    void UpdateStateMachine(float DeltaSeconds);
+    void DoAttackLogic(float DeltaSeconds);
+    void DoDefenseLogic(float DeltaSeconds);
+    void UpdateRoleBillboard();
 
-    TWeakObjectPtr<AActor> JumpPoint;
-    TWeakObjectPtr<AActor> BallActor;
-    TWeakObjectPtr<AActor> GoalActor;
+private:
+    TWeakObjectPtr<AAIController> CachedAI;
+    UPROPERTY() UTextRenderComponent* RoleText = nullptr;
 
-    // 벽 상태
-    bool bHasWall = false;
-    FVector WallNormal = FVector::ZeroVector;
-    FVector WallTangent = FVector::ZeroVector;
-
-    // 호출 최적화용 쿨다운
-    float MoveCmdCooldown = 0.f;
-    UPROPERTY(EditAnywhere, Category="Perf")
-    float MoveCmdInterval = 0.2f; // 과도한 MoveTo 호출 방지
-	
-	AAIController* CachedAI;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Animation")
-	bool bIsPlayingJumpAnim = false;
-
-///////////////Attack 
-	// 찾은 액터들 캐시
-	TWeakObjectPtr<AActor> FieldActor;   // 필드(센터 계산용)
-
-	// 하프라인 로직 파라미터
-	UPROPERTY(EditAnywhere, Category="Soccer|AttackFSM")
-	bool bUseAttackFSM = true;
-
-	UPROPERTY(EditAnywhere, Category="Soccer|AttackFSM")
-	float DefendHoldRadius = 200.f;   // 중앙 대기 시 허용 반경
-
-	// --- 유틸 ---
-	void FindFieldOnce();
-	FVector GetFieldCenter() const;
-
-	// Goal -> FieldCenter 방향 벡터 상에서
-	// Goal과 Center의 중점(= 하프라인) “너머”인지 여부
-	bool IsInAttackingHalf(const FVector& Point) const;
-
-	// Tick_BallKick 필드 분기에서 사용할 헬퍼
-	void AttackFSM_TickBall(float Dt);
-
-	
+   
 };

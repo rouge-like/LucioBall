@@ -6,11 +6,16 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/TextRenderComponent.h"
 #include "Animation/AnimSequence.h"
+#include "CEJ/Ai/LucioBrainComponent.h"
+#include "NiagaraSystem.h"
+#include "CEJ/Ai/LucioDataAsset.h"
 #include "AiLucioDynamic.generated.h"
 
 // Forward declarations
 class AAIController;
 class ABouncyBall;
+class ULucioDataAsset;
+class ULucioBrainComponent;
 
 UENUM(BlueprintType)
 enum class ELucioDynamicState : uint8
@@ -21,6 +26,7 @@ enum class ELucioDynamicState : uint8
     DefendGoal  UMETA(DisplayName = "DefendGoal"),
     ClearBall   UMETA(DisplayName = "ClearBall")
 };
+
 
 UCLASS()
 class LUCIOBALL_API AAiLucioDynamic : public ACharacter
@@ -33,28 +39,74 @@ public:
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
+    virtual void OnConstruction(const FTransform& Transform) override;
+    
+#if WITH_EDITOR
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
-    // ========== AI 설정 ==========
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Config", meta=(ExposeOnSpawn="true"))
+    ULucioDataAsset* Config = nullptr;
+
+    /*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Lucio")
+    TObjectPtr<ULucioBrainComponent> BrainComp = nullptr;
+    */
+
+    float BaseMovementSpeed;
+    float BaseJumpPower;
+
+    UFUNCTION(CallInEditor, Category="Config")
+    void ApplyConfig();
+    
+    UPROPERTY() UMaterialInstanceDynamic* DynMat0 = nullptr;
+    UPROPERTY() UMaterialInstanceDynamic* DynMat1 = nullptr;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Skills|Runtime")
+    bool bESkillActive = false;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Skills|Runtime")
+    bool bUltimateActive = false;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Skills|Runtime")
+    float ESkillEndTime = 0.f;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Skills|Runtime")
+    float UltimateEndTime = 0.f;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Skills|Runtime")
+    float LastESkillUse = 0.f;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Skills|Runtime")
+    float LastUltimateUse = 0.f;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Settings")
     int32 PlayerID = 1;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Settings")
-    bool bDebug = false;
+    
+    /*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Settings")
+    bool bDebug = false;*/
 
     // 역할 태그 설정 (이 태그들을 가진 경우 해당 역할로 고정)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Settings")
-    FName AttackerTag = TEXT("Attacker"); // 공격형
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Lucio|Tags")
+    FName AttackerTag = FName("Attacker");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Lucio|Tags")
+    FName DefenderTag = FName("Defender");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Lucio|Tags")
+    FName BallTag = FName("BouncyBall");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Lucio|Tags")
+    FName GoalTag = FName("SoccerGoal");
+
+    /*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Settings")
+    FName AttackerTag; // 공격형
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Settings")
-    FName DefenderTag = TEXT("Defender"); // 수비형
+    FName DefenderTag; // 수비형
 
     // ========== 타겟 탐지 설정 ==========
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Settings")
-    FName BallTag = TEXT("BouncyBall");
+    FName BallTag;*/
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Settings")
-    FName OwnGoalTag = TEXT("SoccerGoal"); // AI가 넣어야 할 골대 (Y < 0)
-
+    FName OwnGoalTag; // AI가 넣어야 할 골대 (Y < 0)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Settings")
     FName OppGoalTag = TEXT("PlayerGoal"); // 플레이어 골대 (Y > 0, AI가 수비)
 
@@ -77,11 +129,11 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior Settings")
     float DefenseKickImpulse = 2500.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    /*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float BaseMovementSpeed = 800.0f;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-    float BaseJumpPower = 700.0f;
+    float BaseJumpPower = 700.0f;*/
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float WallRunSpeedMultiplier = 1.3f;
@@ -128,7 +180,7 @@ protected:
     float UltimateDuration = 8.0f;
     
     // === 스킬 상태 변수들 ===
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
+    /*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
     bool bESkillActive = false;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
@@ -144,7 +196,11 @@ protected:
     float LastESkillUse = 0.0f;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skills")
-    float LastUltimateUse = 0.0f;
+    float LastUltimateUse = 0.0f;*/
+
+   
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Lucio")
+    class ULucioBrainComponent* BrainComp;
     
     // 점프 관련 변수들
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
@@ -152,6 +208,19 @@ protected:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
     bool bIsPlayingJumpAnim = false;
+
+    UPROPERTY(EditAnywhere, Category="Lucio|Dash") bool  bJumpDashEnabled = true;
+    UPROPERTY(EditAnywhere, Category="Lucio|Dash") float JumpDashStrength = 1000.f;
+    UPROPERTY(EditAnywhere, Category="Lucio|Dash") float JumpDashUpBoost  = 0.f;
+    UPROPERTY(EditAnywhere, Category="Lucio|Dash") float DashBallZThreshold = 700.f;
+    UPROPERTY(EditAnywhere, Category="Lucio|Dash") float JumpDashCooldown = 1.5f;
+    UPROPERTY(EditAnywhere, Category="Lucio|Dash") UNiagaraSystem* DashVFX = nullptr;
+
+    FTimerHandle JumpDashCDTimer;
+    bool bJumpDashReady = true;
+
+    bool CanUseJumpDash() const; 
+    
     
     // 타이머 핸들
     FTimerHandle JumpAnimResetTimer;
@@ -167,7 +236,7 @@ protected:
     float InitialRunSpeed = 0.0f;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
-    float InitialJumpVelocity = 0.0f;
+    float InitialJumpVelocity = 0.8f;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
     bool bIsRunning = false;
@@ -200,6 +269,7 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BallTracking")
     bool bIsTrackingLandLocation = false;
     
+    
 
 
 private:
@@ -216,6 +286,7 @@ private:
     UPROPERTY()
     TWeakObjectPtr<AActor> OppGoalActor; // 플레이어 골대 (수비 대상)
 
+    
     // ========== 상태 관리 ==========
     ELucioDynamicState CurrentState = ELucioDynamicState::Idle;
     bool bIsInAttackMode;
@@ -236,12 +307,6 @@ private:
     void ExecuteAttackBehavior(float DeltaTime);
     void ExecuteDefenseBehavior(float DeltaTime);
     void MoveToLocation(const FVector& Location);
-    void KickBallTowards(const FVector& Target, float Impulse);
-
-    bool ShouldUseAdvancedMovement(const FVector& TargetLocation, float RequiredTime);
-    void ExecuteAdvancedMovement(const FVector& TargetLocation, float DeltaTime);
-    float CalculateTimeToReachTarget(const FVector& TargetLocation);
-    FVector PredictBallLandingPosition(float TimeAhead = 0.0f);
 
     //애니메이션
     void HandleMovementAnimation();
@@ -254,11 +319,11 @@ private:
     FVector GetBallLocation() const;
     FVector GetBallLandLocation() const;
     
-    FVector GetAIGoalLocation() const;      // AI가 넣어야 할 골대 (Y < 0)
+    /*FVector GetAIGoalLocation() const;      // AI가 넣어야 할 골대 (Y < 0)
     FVector GetPlayerGoalLocation() const;  // 플레이어 골대 (Y > 0, 수비 대상)
     
     FVector GetDefensePosition() const;
-    FVector GetAttackPosition() const;
+    FVector GetAttackPosition() const;*/
 
     //bool IsBallNearby(float Distance = 0.0f) const;
     bool IsBallNearby(float Threshold) const;
@@ -358,21 +423,5 @@ public:
         }
     }
 
-    
-    /*
-    UPROPERTY(EditDefaultsOnly, Category="AI|Data")
-    UDataTable* DT_AiLucio;
-
-    UPROPERTY(EditDefaultsOnly, Category="AI|Data")
-    FName SkillRowName = TEXT("Skill");
-
-    void RefreshParamsFromDataTable();           // 시작 시 1회 로드
-    bool CanApplySkillNow() const;               // 쿨타임 체크
-    bool IsSkillState() const;                   // 상태/공 위치로 발동 조건
-    void ApplySkillParams();                     // 속도/점프/임펄스 갱신
-    void ResetParamsIfNeeded();                  // 스킬 상태가 아니면 기본값 복귀
-
-    // 킥 임펄스 가져오기(스킬이 켜져있으면 그 값)
-    float GetKickImpulseForCurrentState(float DefaultImpulse) const;
-    */      
+      
 };
