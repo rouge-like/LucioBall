@@ -58,7 +58,6 @@ void UMagneticComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			if (!bIsPulling)
 			{
 				bIsPulling = true;
-				BallActor->SetBouncyBallVelocity(FVector::ZeroVector, OwnerActor);
 				//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, "UseMagnetic");
 				PullStartLocation = BallActor->GetActorLocation();
 				Alpha = 0;
@@ -83,7 +82,8 @@ void UMagneticComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 		// 보간 (EaseInOut 커브 적용)
 		float EasedAlpha = FMath::InterpEaseOut(0.f, 1.f, Alpha, 2.0f); // 마지막 인자는 커브 강도
 		FVector NewLocation = FMath::Lerp(PullStartLocation, TargetLocation, EasedAlpha);
-
+		
+		BallActor->SetBouncyBallVelocity(FVector::ZeroVector, OwnerActor);
 		BallActor->SetActorLocation(NewLocation);
 
 		if (Alpha >= 1.0f)

@@ -6,6 +6,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Components/TextRenderComponent.h"
 #include "EngineUtils.h"
+#include "NavigationSystem.h"
 #include "Navigation/PathFollowingComponent.h"
 
 #include "OSC/BouncyBall.h"
@@ -164,7 +165,7 @@ void AAiLucioDynamic::Tick(float DeltaTime)
     UpdateStateMachine(DeltaTime);
     
     // 역할 텍스트 업데이트
-    UpdateRoleText();
+    // UpdateRoleText();
     
     // 텍스트가 카메라를 바라보도록 업데이트
     UpdateTextRotation();
@@ -954,8 +955,22 @@ void AAiLucioDynamic::MoveToLocation(const FVector& Location)
             MoveReq.SetAcceptanceRadius(30.0f); // 더 가까이 접근
             
             // AI 이동 요청
-            EPathFollowingRequestResult::Type MoveResult = CachedAI->MoveTo(MoveReq);
-            
+            //FPathFollowingRequestResult MoveResult = CachedAI->MoveTo(MoveReq);
+
+            //if (MoveResult.Code == EPathFollowingRequestResult::Failed)
+            {
+                FNavLocation  AdjustedGoal;
+                UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+                if (NavSys && NavSys->ProjectPointToNavigation(Location, AdjustedGoal, FVector(1000,1000,1000),nullptr))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Find reachable location near target!"));
+                    CachedAI->MoveTo(AdjustedGoal.Location);
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Can't find reachable location near target!"));
+                }
+            }
             // 추가적으로 캐릭터에게 직접 이동 명령
             if (UCharacterMovementComponent* CharMov = GetCharacterMovement())
             {
@@ -963,15 +978,30 @@ void AAiLucioDynamic::MoveToLocation(const FVector& Location)
                 AddMovementInput(MoveDirection, 1.0f);
                 
                 // 디버그 로그
-                UE_LOG(LogTemp, VeryVerbose, TEXT("AI %d rushing to ball land location! Distance: %.1f, Speed: %.1f, Result: %d"), 
-                       PlayerID, DistToTarget, CharMov->MaxWalkSpeed, (int32)MoveResult);
+                // UE_LOG(LogTemp, VeryVerbose, TEXT("AI %d rushing to ball land location! Distance: %.1f, Speed: %.1f, Result: %d"), 
+                //        PlayerID, DistToTarget, CharMov->MaxWalkSpeed, (int32)MoveResult);
             }
             return;
         }
     }
     
     // 일반 이동
-    CachedAI->MoveTo(MoveReq);
+    FPathFollowingRequestResult Result = CachedAI->MoveTo(MoveReq);
+    UE_LOG(LogTemp, Warning, TEXT("Can't find reachable location near target!"));
+    if (Result.Code == EPathFollowingRequestResult::Failed)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Can't find reachable location target!"));
+        FNavLocation  AdjustedGoal;
+        UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+        if (NavSys && NavSys->ProjectPointToNavigation(Location, AdjustedGoal, FVector(500,500,500),nullptr))
+        {
+            CachedAI->MoveToLocation(AdjustedGoal);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Can't find reachable location near target!"));
+        }
+    }
 }
 
 void AAiLucioDynamic::HandleMovementAnimation()
@@ -1055,7 +1085,7 @@ void AAiLucioDynamic::HandleJumpBehavior()
         
         // 점프 시작 시간과 초기 속도 기록
         JumpStartTime = GetWorld()->GetTimeSeconds();
-        InitialJumpVelocity = 400.0f; // JumpZVelocity 값
+        InitialJumpVelocity = 600.0f; // JumpZVelocity 값
         
         // 점프력 700 적용
         Jump();
