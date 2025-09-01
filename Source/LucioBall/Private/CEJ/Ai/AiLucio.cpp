@@ -112,7 +112,7 @@ void AAiLucio::Tick(float DeltaSeconds)
 
 void AAiLucio::UpdateStateMachine(float DeltaSeconds)
 {
-	if (!SenseComp) { State = ELucioDynamicState::Idle; return; }
+	if (!SenseComp) { State = ELucioState::Idle; return; }
 
 	const float LandY = SenseComp->GetBallLandLocation().Y;
 	const int32 GoalSign = TeamComp->GoalYSign();
@@ -122,11 +122,11 @@ void AAiLucio::UpdateStateMachine(float DeltaSeconds)
 
 	switch (State)
 	{
-	case ELucioDynamicState::Idle:
-		State = ELucioDynamicState::SeekBall;
+	case ELucioState::Idle:
+		State = ELucioState::SeekBall;
 		break;
 
-	case ELucioDynamicState::SeekBall:
+	case ELucioState::SeekBall:
 	{
 		// 공 착지 지점으로 이동
 		if (CachedAI.IsValid())
@@ -134,46 +134,46 @@ void AAiLucio::UpdateStateMachine(float DeltaSeconds)
 
 		// 가까워지면 모드 전환
 		if (SenseComp->IsBallNearby(PossessionRadius))
-			State = bAttackSide ? ELucioDynamicState::AttackBall : ELucioDynamicState::ClearBall;
+			State = bAttackSide ? ELucioState::AttackBall : ELucioState::ClearBall;
 		break;
 	}
 
-	case ELucioDynamicState::AttackBall:
+	case ELucioState::AttackBall:
 		DoAttackLogic(DeltaSeconds);
 		break;
 
-	case ELucioDynamicState::ClearBall:
+	case ELucioState::ClearBall:
 		DoDefenseLogic(DeltaSeconds);
 		break;
 
-	case ELucioDynamicState::DefendGoal:
+	case ELucioState::DefendGoal:
 	default:
 		// 필요 시 골대 앞 대기 등으로 확장 가능
-		State = ELucioDynamicState::SeekBall;
+		State = ELucioState::SeekBall;
 		break;
 	}
 }
 
 void AAiLucio::DoAttackLogic(float DeltaSeconds)
 {
-	if (!SenseComp || !CombatComp) { State = ELucioDynamicState::Idle; return; }
+	if (!SenseComp || !CombatComp) { State = ELucioState::Idle; return; }
 
 	const bool bClose = SenseComp->IsBallNearby(PossessionRadius);
-	if (!bClose) { State = ELucioDynamicState::SeekBall; return; }
+	if (!bClose) { State = ELucioState::SeekBall; return; }
 
 	CombatComp->KickTowardsGoal(SenseComp->Ball.Get(), SenseComp->Goal.Get(), this);
-	State = ELucioDynamicState::SeekBall;
+	State = ELucioState::SeekBall;
 }
 
 void AAiLucio::DoDefenseLogic(float DeltaSeconds)
 {
-	if (!SenseComp || !CombatComp) { State = ELucioDynamicState::Idle; return; }
+	if (!SenseComp || !CombatComp) { State = ELucioState::Idle; return; }
 
 	const bool bClose = SenseComp->IsBallNearby(PossessionRadius);
 	if (bClose)
 	{
 		CombatComp->ClearUpAndOut(SenseComp->Ball.Get(), SenseComp->Goal.Get(), this);
-		State = ELucioDynamicState::SeekBall;
+		State = ELucioState::SeekBall;
 	}
 	else
 	{

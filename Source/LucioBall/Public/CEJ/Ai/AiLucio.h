@@ -16,7 +16,7 @@ class UTextRenderComponent;
 class AAIController;
 
 UENUM(BlueprintType)
-enum class ELucioDynamicState : uint8
+enum class ELucioState : uint8
 {
     Idle,
     SeekBall,
@@ -64,7 +64,7 @@ public:
 
     // ===== Runtime =====
     UPROPERTY(VisibleAnywhere, Category="Lucio|State")
-    ELucioDynamicState State = ELucioDynamicState::Idle;
+    ELucioState State = ELucioState::Idle;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
     UAnimSequence* MoveAnim;
