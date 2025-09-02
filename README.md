@@ -30,7 +30,7 @@
 
 ## 🤖 AI 시스템 (조은정)
 
-- **UE AIController + FSM **기반 AI 로직
+- UE AIController + FSM기반 AI 로직
 - **공 위치 분석**을 통한 공격 / 수비 행동 판단
 - **등가속**을 이용한 캐릭터 이동 조정
 
